@@ -24,7 +24,14 @@ provider:
   name: aws
   runtime: python3.9
   profile: 'devuser'
-  region: us-east-1
+  region: eu-west-1
+custom:
+  pythonRequirements:
+    usePoetry: true
+package:
+  exclude:
+    - node_modules/**
+    - venv/**
   #  stage: dev
 # you can overwrite defaults here
 #  stage: dev
