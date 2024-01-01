@@ -1,12 +1,13 @@
 from alpaca.data.historical import StockHistoricalDataClient
 from secrets_helper import get_secret
 from alpaca.trading.client import TradingClient
-from alpaca.trading.requests import MarketOrderRequest
-from alpaca.trading.enums import OrderSide, TimeInForce
 from trade_helper import (
     get_stock_data,
     get_open_positions,
-    buying_condition)
+    buying_condition,
+    selling_condition,
+    buy_stock,
+    sell_stock)
 
 
 def lambda_handler(event, context):
@@ -24,28 +25,11 @@ def lambda_handler(event, context):
 
     if buying_condition(mean_price, last_price, position_held):
         print("Buying")
-        market_order_data = MarketOrderRequest(
-            symbol=symb,
-            qty=1,
-            side=OrderSide.BUY,
-            time_in_force=TimeInForce.DAY
-        )
-        # Market order
-        market_order = trading_client.submit_order(
-            order_data=market_order_data
-        )
-        pos_held = True
-    elif mean_price > last_price and position_held:
+        buy_stock(trading_client, symb)
+
+    elif selling_condition(mean_price, last_price, position_held):
         print("Selling")
-        market_order_data = MarketOrderRequest(
-            symbol=symb,
-            qty=1,
-            side=OrderSide.SELL,
-            time_in_force=TimeInForce.DAY
-        )
-        # Market order
-        market_order = trading_client.submit_order(
-            order_data=market_order_data
-        )
+        sell_stock(trading_client, symb)
+
     else:
         print("Not buying or selling...")
