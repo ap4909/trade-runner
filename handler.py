@@ -1,21 +1,12 @@
-
 from alpaca.data.historical import StockHistoricalDataClient
-import datetime
 from secrets_helper import get_secret
-import yfinance as yf
 from alpaca.trading.client import TradingClient
 from alpaca.trading.requests import MarketOrderRequest
 from alpaca.trading.enums import OrderSide, TimeInForce
-from alpaca.broker.client import BrokerClient
 from trade_helper import (
     get_stock_data,
     get_open_positions,
     buying_condition)
-
-
-def retrieve_stock_data(ticker_list, start, end=None):
-    return yf.download(ticker_list, start=start,
-                       group_by="ticker", interval="1m")
 
 
 def lambda_handler(event, context):
