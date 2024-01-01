@@ -68,8 +68,8 @@ package:
 #    - include-me-dir/**
 
 functions:
-  hello:
-    handler: handler.hello
+  lambda_handler:
+    handler: handler.lambda_handler
 
 plugins:
   - serverless-better-credentials # as the first plugin
