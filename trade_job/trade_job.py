@@ -7,7 +7,8 @@ from trade_helper import (
     buying_condition,
     selling_condition,
     buy_stock,
-    sell_stock)
+    sell_stock
+)
 
 
 def lambda_handler(event, context):
@@ -26,10 +27,8 @@ def lambda_handler(event, context):
     if buying_condition(mean_price, last_price, position_held):
         print("Buying")
         buy_stock(trading_client, symb)
-
     elif selling_condition(mean_price, last_price, position_held):
         print("Selling")
         sell_stock(trading_client, symb)
-
     else:
         print("Not buying or selling...")
