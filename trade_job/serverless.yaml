@@ -1,0 +1,55 @@
+service: trade-job
+
+frameworkVersion: '3'
+
+provider:
+  name: aws
+  runtime: python3.9
+  profile: 'devuser'
+  region: eu-west-1
+custom:
+  pythonRequirements:
+    usePoetry: true
+package:
+  exclude:
+    - node_modules/**
+    - venv/**
+
+functions:
+  runTradeJob:
+    handler: handler.lambda_handler
+    reservedConcurrency: 1
+
+plugins:
+  - serverless-better-credentials
+  - serverless-step-functions
+
+stepFunctions:
+  stateMachines:
+    tradejobstepfunc:
+      events:
+        - http:
+            path: startTradeJob
+            method: POST
+      name: tradeJobStepFunction
+      definition:
+        Comment: A description of my state machine
+        StartAt: Lambda Invoke
+        States:
+          Lambda Invoke:
+            Type: Task
+            Resource: arn:aws:states:::lambda:invoke
+            OutputPath: $.Payload
+            Parameters:
+              Payload.$: $
+              FunctionName: runTradeJob
+            Retry:
+              - ErrorEquals:
+                  - Lambda.ServiceException
+                  - Lambda.AWSLambdaException
+                  - Lambda.SdkClientException
+                  - Lambda.TooManyRequestsException
+                IntervalSeconds: 1
+                MaxAttempts: 3
+                BackoffRate: 2
+            End: true
