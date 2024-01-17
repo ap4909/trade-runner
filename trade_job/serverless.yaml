@@ -4,12 +4,20 @@ frameworkVersion: '3'
 
 provider:
   name: aws
-  runtime: python3.9
+  runtime: python3.10
   profile: 'devuser'
   region: eu-west-1
+  architecture: arm64
 custom:
   pythonRequirements:
     usePoetry: true
+    # this is necessary to avoid cross-platform build issues e.g. https://github.com/pydantic/pydantic/issues/6557
+    dockerizePip: true
+    # explicitly pass the arm64 platform to the docker build
+    dockerImage: public.ecr.aws/sam/build-python3.10:latest-arm64
+    # explicitly tell pip to fetch the arm64 version of the package
+    dockerRunCmdExtraArgs: [ '--platform', 'linux/arm64/v8' ]
+
 package:
   exclude:
     - node_modules/**
@@ -17,12 +25,8 @@ package:
 
 functions:
   runTradeJob:
-    handler: handler.lambda_handler
+    handler: trade_job.lambda_handler
     reservedConcurrency: 1
-
-plugins:
-  - serverless-better-credentials
-  - serverless-step-functions
 
 stepFunctions:
   stateMachines:
@@ -42,7 +46,7 @@ stepFunctions:
             OutputPath: $.Payload
             Parameters:
               Payload.$: $
-              FunctionName: runTradeJob
+              FunctionName: !GetAtt runTradeJob.Arn
             Retry:
               - ErrorEquals:
                   - Lambda.ServiceException
@@ -53,3 +57,8 @@ stepFunctions:
                 MaxAttempts: 3
                 BackoffRate: 2
             End: true
+
+plugins:
+  - serverless-better-credentials
+  - serverless-step-functions
+  - serverless-python-requirements

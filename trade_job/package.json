@@ -1,8 +1,9 @@
 {
   "dependencies": {
-    "serverless-better-credentials": "^2.0.0"
+    "serverless-better-credentials": "^2.0.0",
+    "serverless-step-functions": "^3.18.0"
   },
   "devDependencies": {
-    "serverless-step-functions": "^3.18.0"
+    "serverless-python-requirements": "^6.0.1"
   }
 }
