@@ -14,7 +14,7 @@ def get_secret():
     region_name = "eu-west-1"
 
     # Create a Secrets Manager client
-    session = boto3.session.Session(profile_name='devuser')
+    session = boto3.session.Session()
     client = session.client(
         service_name='secretsmanager',
         region_name=region_name
