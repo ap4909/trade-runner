@@ -13,7 +13,8 @@ from trade_helper import (
 
 def start_trade_run(event, context):
     secret = get_secret()
-    symb = event["symb"]
+    symbol = event["symbol"]
+    offset = event["offset"]
 
     alpaca_api_key = secret['alpaca_api_key']
     alpaca_secret_key = secret['alpaca_secret_key']
@@ -21,14 +22,14 @@ def start_trade_run(event, context):
     stock_client = StockHistoricalDataClient(alpaca_api_key, alpaca_secret_key)
     trading_client = TradingClient(alpaca_api_key, alpaca_secret_key)
 
-    mean_price, last_price = get_stock_data(stock_client, symb)
-    position_held = get_open_positions(trading_client, symb)
+    mean_price, last_price = get_stock_data(stock_client, symbol, offset)
+    position_held = get_open_positions(trading_client, symbol)
 
     if buying_condition(mean_price, last_price, position_held):
         print("Buying")
-        buy_stock(trading_client, symb)
+        buy_stock(trading_client, symbol)
     elif selling_condition(mean_price, last_price, position_held):
         print("Selling")
-        sell_stock(trading_client, symb)
+        sell_stock(trading_client, symbol)
     else:
         print("Not buying or selling...")

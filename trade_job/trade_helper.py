@@ -1,16 +1,16 @@
 from alpaca.data.timeframe import TimeFrame
 from alpaca.data.requests import StockBarsRequest
 from alpaca.common.exceptions import APIError
-from alpaca.trading.requests import MarketOrderRequest
+from alpaca.trading.requests import MarketOrderRequest, GetPortfolioHistoryRequest
 from alpaca.trading.enums import OrderSide, TimeInForce
 import datetime
 
 
-def get_stock_data(client, symb):
-    today = datetime.datetime.now() - datetime.timedelta(minutes=20)
+def get_stock_data(client, symbol, offset):
+    today = datetime.datetime.now() - datetime.timedelta(minutes=offset)
 
     request_params = StockBarsRequest(
-        symbol_or_symbols=symb,
+        symbol_or_symbols=symbol,
         timeframe=TimeFrame.Minute,
         start=today
     )
@@ -28,7 +28,6 @@ def get_stock_data(client, symb):
 
 def get_open_positions(trading_client, symb):
     try:
-        trading_client.get_open_position(symb)
         return True
     except APIError as e:
         print(f"Error during open position retrieval, message: {e}")
