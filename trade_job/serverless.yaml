@@ -25,7 +25,7 @@ package:
 
 functions:
   runTradeJob:
-    handler: trade_job.lambda_handler
+    handler: trade_job.start_trade_run
     reservedConcurrency: 1
 
 stepFunctions:

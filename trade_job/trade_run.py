@@ -11,7 +11,7 @@ from trade_helper import (
 )
 
 
-def lambda_handler(event, context):
+def start_trade_run(event, context):
     secret = get_secret()
     symb = event["symb"]
 
