@@ -28,10 +28,14 @@ def get_stock_data(client, symbol, offset):
 
 def get_open_positions(trading_client, symb):
     try:
+        trading_client.get_open_position(symb)
         return True
     except APIError as e:
-        print(f"Error during open position retrieval, message: {e}")
+        print(f"Error during open position retrieval, potentially no open positions, message: {e}")
         return False
+    except Exception as e:
+        print(f"Error during open position retrieval, message: {e}")
+        raise
 
 
 def buying_condition(mean_price, last_price, pos_held):
