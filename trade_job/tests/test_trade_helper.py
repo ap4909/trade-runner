@@ -3,14 +3,13 @@ from unittest.mock import create_autospec, patch, MagicMock
 from alpaca.data.historical import StockHistoricalDataClient
 from alpaca.trading.client import TradingClient
 from alpaca.common.exceptions import APIError
-from alpaca.data.timeframe import TimeFrame
-import datetime
 from trade_job.trade_helper import (
     get_stock_data,
     get_open_positions,
     buying_condition,
     selling_condition,
-    buy_stock
+    buy_stock,
+    sell_stock
 )
 
 
@@ -28,6 +27,7 @@ class TestTradeHelper(unittest.TestCase):
         mock_datetime.datetime.now.return_value = 2
         mock_datetime.timedelta.return_value = 1
         mock_client = create_autospec(StockHistoricalDataClient)
+        mock_stock_bars_request.return_value = 1
 
         # Mocking the mean value
         mock_client.get_stock_bars.return_value.df.__getitem__.return_value.mean.return_value = 1
@@ -41,6 +41,7 @@ class TestTradeHelper(unittest.TestCase):
         mock_stock_bars_request.assert_called_once_with(symbol_or_symbols=symbol,
                                                         timeframe=mock_timeframe,
                                                         start=1)
+        mock_client.get_stock_bars.assert_called_once_with(1)
 
     def test_get_open_positions_returns_true(self):
         mock_client = create_autospec(TradingClient)
@@ -88,4 +89,44 @@ class TestTradeHelper(unittest.TestCase):
     def test_mean_price_greater_last_price_position_held(self):
         assert selling_condition(80, 60, True) == True, "Test case failed"
 
-#    def test_buy_stock(self):
+    @patch("trade_job.trade_helper.TimeInForce")
+    @patch("trade_job.trade_helper.OrderSide")
+    @patch("trade_job.trade_helper.MarketOrderRequest", autospec=True)
+    def test_buy_stock(self,
+                       mock_market_order_request,
+                       mock_buy,
+                       mock_day):
+        mock_client = create_autospec(TradingClient)
+        symb = "AAPL"
+        mock_market_order_request.return_value = 1
+
+        buy_stock(mock_client, symb)
+
+        mock_market_order_request.assert_called_once_with(
+            symbol=symb,
+            qty=1,
+            side=mock_buy.BUY,
+            time_in_force=mock_day.DAY)
+
+        mock_client.submit_order.assert_called_once_with(order_data=1)
+
+    @patch("trade_job.trade_helper.TimeInForce")
+    @patch("trade_job.trade_helper.OrderSide")
+    @patch("trade_job.trade_helper.MarketOrderRequest", autospec=True)
+    def test_sell_stock(self,
+                        mock_market_order_request,
+                        mock_buy,
+                        mock_day):
+        mock_client = create_autospec(TradingClient)
+        symb = "AAPL"
+        mock_market_order_request.return_value = 1
+
+        sell_stock(mock_client, symb)
+
+        mock_market_order_request.assert_called_once_with(
+            symbol=symb,
+            qty=1,
+            side=mock_buy.SELL,
+            time_in_force=mock_day.DAY)
+
+        mock_client.submit_order.assert_called_once_with(order_data=1)
