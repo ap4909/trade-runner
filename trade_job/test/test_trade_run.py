@@ -154,3 +154,7 @@ class TestTradeRun(unittest.TestCase):
         mock_sell_stock.assert_not_called()
         mock_buy_stock.assert_not_called()
         mock_buying_condition.assert_called_once_with(mean_price, last_price)
+
+
+if __name__ == '__main__':
+    unittest.main()

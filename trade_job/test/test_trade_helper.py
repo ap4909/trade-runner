@@ -164,3 +164,7 @@ class TestTradeHelper(unittest.TestCase):
             time_in_force=mock_day.DAY)
 
         mock_client.submit_order.assert_called_once_with(order_data=1)
+
+
+if __name__ == '__main__':
+    unittest.main()
