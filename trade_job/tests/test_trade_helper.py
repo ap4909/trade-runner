@@ -1,5 +1,5 @@
 import unittest
-from unittest.mock import create_autospec, patch, MagicMock
+from unittest.mock import create_autospec, patch
 from alpaca.data.historical import StockHistoricalDataClient
 from alpaca.trading.client import TradingClient
 from alpaca.common.exceptions import APIError
@@ -60,19 +60,13 @@ class TestTradeHelper(unittest.TestCase):
         self.assertFalse(position_held)
 
     def test_buying_condition_mean_price_less_last_price(self):
-        assert buying_condition(50, 60, False) == True, "Test case failed"
+        assert buying_condition(50, 60) == True, "Test case failed"
 
     def test_buying_condition_mean_price_greater_last_price(self):
-        assert buying_condition(70, 60, False) == False, "Test case failed"
-
-    def test_buying_condition_mean_price_less_last_price_position_held(self):
-        assert buying_condition(50, 40, True) == False, "Test case failed"
+        assert buying_condition(70, 60) == False, "Test case failed"
 
     def test_buying_condition_mean_price_equal_last_price(self):
-        assert buying_condition(50, 50, False) == False, "Test case failed"
-
-    def test_buying_condition_mean_price_less_last_price_position_held(self):
-        assert buying_condition(40, 50, True) == False, "Test case failed"
+        assert buying_condition(50, 50) == False, "Test case failed"
 
     def test_mean_price_greater_last_price_position_held(self):
         assert selling_condition(70, 60, True) == True, "Test case failed"

@@ -25,7 +25,7 @@ def start_trade_run(event, context):
     mean_price, last_price = get_stock_data(stock_client, symbol, offset)
     position_held = get_open_positions(trading_client, symbol)
 
-    if buying_condition(mean_price, last_price, position_held):
+    if buying_condition(mean_price, last_price):
         print("Buying")
         buy_stock(trading_client, symbol)
     elif selling_condition(mean_price, last_price, position_held):

@@ -38,8 +38,8 @@ def get_open_positions(trading_client, symb):
         raise
 
 
-def buying_condition(mean_price, last_price, pos_held):
-    if mean_price < last_price and not pos_held:
+def buying_condition(mean_price, last_price):
+    if mean_price < last_price:
         return True
     else:
         return False
