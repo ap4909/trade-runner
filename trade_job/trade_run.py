@@ -2,6 +2,7 @@ from alpaca.data.historical import StockHistoricalDataClient
 from secrets_helper import get_secret
 from alpaca.trading.client import TradingClient
 from trade_helper import (
+    set_default_values,
     get_stock_data,
     get_open_positions,
     buying_condition,
@@ -13,6 +14,9 @@ from trade_helper import (
 
 def start_trade_run(event, context):
     secret = get_secret()
+
+    set_default_values(event)
+
     symbol = event["symbol"]
     offset = event["offset"]
 

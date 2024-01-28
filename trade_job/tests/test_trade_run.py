@@ -3,26 +3,28 @@ from unittest.mock import MagicMock, patch
 from trade_job.trade_run import start_trade_run
 
 
+@patch("trade_job.trade_run.set_default_values")
+@patch("trade_job.trade_run.get_secret")
+@patch("trade_job.trade_run.StockHistoricalDataClient")
+@patch("trade_job.trade_run.TradingClient")
+@patch("trade_job.trade_run.get_stock_data")
+@patch("trade_job.trade_run.get_open_positions")
+@patch("trade_job.trade_run.buying_condition")
+@patch("trade_job.trade_run.selling_condition")
+@patch("trade_job.trade_run.buy_stock")
+@patch("trade_job.trade_run.sell_stock")
 class TestTradeRun(unittest.TestCase):
-    @patch("trade_job.trade_run.get_secret")
-    @patch("trade_job.trade_run.StockHistoricalDataClient")
-    @patch("trade_job.trade_run.TradingClient")
-    @patch("trade_job.trade_run.get_stock_data")
-    @patch("trade_job.trade_run.get_open_positions")
-    @patch("trade_job.trade_run.buying_condition")
-    @patch("trade_job.trade_run.selling_condition")
-    @patch("trade_job.trade_run.buy_stock")
-    @patch("trade_job.trade_run.sell_stock")
     def test_start_trade_run_with_buying_condition(self,
-                                                           mock_sell_stock,
-                                                           mock_buy_stock,
-                                                           mock_selling_condition,
-                                                           mock_buying_condition,
-                                                           mock_get_open_positions,
-                                                           mock_get_stock_data,
-                                                           mock_trading_client,
-                                                           mock_stock_client,
-                                                           mock_get_secret):
+                                                   mock_sell_stock,
+                                                   mock_buy_stock,
+                                                   mock_selling_condition,
+                                                   mock_buying_condition,
+                                                   mock_get_open_positions,
+                                                   mock_get_stock_data,
+                                                   mock_trading_client,
+                                                   mock_stock_client,
+                                                   mock_get_secret,
+                                                   mock_set_default_values):
         # Mocking return values and behaviors
         event = {"symbol": "AAPL", "offset": 10}
         context = MagicMock()
@@ -49,6 +51,7 @@ class TestTradeRun(unittest.TestCase):
 
         # Assertions
         mock_get_secret.assert_called_once()
+        mock_set_default_values.assert_called_once()
         mock_stock_client.assert_called_once_with(alpaca_api_key, alpaca_secret_key)
         mock_trading_client.assert_called_once_with(alpaca_api_key, alpaca_secret_key)
         mock_get_stock_data.assert_called_once_with(mock_stock_client.return_value, "AAPL", 10)
@@ -58,15 +61,6 @@ class TestTradeRun(unittest.TestCase):
         mock_sell_stock.assert_not_called()
         mock_selling_condition.assert_not_called()
 
-    @patch("trade_job.trade_run.get_secret")
-    @patch("trade_job.trade_run.StockHistoricalDataClient")
-    @patch("trade_job.trade_run.TradingClient")
-    @patch("trade_job.trade_run.get_stock_data")
-    @patch("trade_job.trade_run.get_open_positions")
-    @patch("trade_job.trade_run.buying_condition")
-    @patch("trade_job.trade_run.selling_condition")
-    @patch("trade_job.trade_run.buy_stock")
-    @patch("trade_job.trade_run.sell_stock")
     def test_start_trade_run_with_selling_price_position_held(self,
                                                               mock_sell_stock,
                                                               mock_buy_stock,
@@ -76,7 +70,8 @@ class TestTradeRun(unittest.TestCase):
                                                               mock_get_stock_data,
                                                               mock_trading_client,
                                                               mock_stock_client,
-                                                              mock_get_secret):
+                                                              mock_get_secret,
+                                                              mock_set_default_values):
         # Mocking return values and behaviors
         event = {"symbol": "AAPL", "offset": 10}
         context = MagicMock()
@@ -103,6 +98,7 @@ class TestTradeRun(unittest.TestCase):
 
         # Assertions
         mock_get_secret.assert_called_once()
+        mock_set_default_values.assert_called_once()
         mock_stock_client.assert_called_once_with(alpaca_api_key, alpaca_secret_key)
         mock_trading_client.assert_called_once_with(alpaca_api_key, alpaca_secret_key)
         mock_get_stock_data.assert_called_once_with(mock_stock_client.return_value, "AAPL", 10)
@@ -112,25 +108,17 @@ class TestTradeRun(unittest.TestCase):
         mock_buy_stock.assert_not_called()
         mock_buying_condition.assert_called_once_with(mean_price, last_price)
 
-    @patch("trade_job.trade_run.get_secret")
-    @patch("trade_job.trade_run.StockHistoricalDataClient")
-    @patch("trade_job.trade_run.TradingClient")
-    @patch("trade_job.trade_run.get_stock_data")
-    @patch("trade_job.trade_run.get_open_positions")
-    @patch("trade_job.trade_run.buying_condition")
-    @patch("trade_job.trade_run.selling_condition")
-    @patch("trade_job.trade_run.buy_stock")
-    @patch("trade_job.trade_run.sell_stock")
     def test_start_trade_run_with_selling_price_no_position(self,
-                                                              mock_sell_stock,
-                                                              mock_buy_stock,
-                                                              mock_selling_condition,
-                                                              mock_buying_condition,
-                                                              mock_get_open_positions,
-                                                              mock_get_stock_data,
-                                                              mock_trading_client,
-                                                              mock_stock_client,
-                                                              mock_get_secret):
+                                                            mock_sell_stock,
+                                                            mock_buy_stock,
+                                                            mock_selling_condition,
+                                                            mock_buying_condition,
+                                                            mock_get_open_positions,
+                                                            mock_get_stock_data,
+                                                            mock_trading_client,
+                                                            mock_stock_client,
+                                                            mock_get_secret,
+                                                            mock_set_default_values):
         # Mocking return values and behaviors
         event = {"symbol": "AAPL", "offset": 10}
         context = MagicMock()
@@ -157,6 +145,7 @@ class TestTradeRun(unittest.TestCase):
 
         # Assertions
         mock_get_secret.assert_called_once()
+        mock_set_default_values.assert_called_once()
         mock_stock_client.assert_called_once_with(alpaca_api_key, alpaca_secret_key)
         mock_trading_client.assert_called_once_with(alpaca_api_key, alpaca_secret_key)
         mock_get_stock_data.assert_called_once_with(mock_stock_client.return_value, "AAPL", 10)
