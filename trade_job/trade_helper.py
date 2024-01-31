@@ -3,21 +3,7 @@ from alpaca.data.requests import StockBarsRequest
 from alpaca.common.exceptions import APIError
 from alpaca.trading.requests import MarketOrderRequest, GetPortfolioHistoryRequest
 from alpaca.trading.enums import OrderSide, TimeInForce
-from constants import (OFFSET_TIME_MINUTES,
-                       EVALUATION_WINDOW_MINUTES,
-                       MINIMUM_POINTS)
 import datetime
-
-
-def set_default_values(event):
-    default_configs = {
-        "offsetTime": OFFSET_TIME_MINUTES,
-        "evaluationWindow": EVALUATION_WINDOW_MINUTES,
-        "minimumPoints": MINIMUM_POINTS
-    }
-    for config_option, config_value in default_configs.items():
-        if config_option not in event:
-            event[config_option] = config_value
 
 
 def get_stock_data(client, symbol, offset):

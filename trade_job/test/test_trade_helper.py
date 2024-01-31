@@ -4,7 +4,6 @@ from alpaca.data.historical import StockHistoricalDataClient
 from alpaca.trading.client import TradingClient
 from alpaca.common.exceptions import APIError
 from trade_job.trade_helper import (
-    set_default_values,
     get_stock_data,
     get_open_positions,
     buying_condition,
@@ -12,48 +11,9 @@ from trade_job.trade_helper import (
     buy_stock,
     sell_stock
 )
-from trade_job.constants import (OFFSET_TIME_MINUTES,
-                                 EVALUATION_WINDOW_MINUTES,
-                                 MINIMUM_POINTS)
 
 
 class TestTradeHelper(unittest.TestCase):
-    def test_set_default_values_none_set(self):
-        # Test case where all default values should be set
-        event = {}
-        set_default_values(event)
-        self.assertEqual(event["offsetTime"], OFFSET_TIME_MINUTES)
-        self.assertEqual(event["evaluationWindow"], EVALUATION_WINDOW_MINUTES)
-        self.assertEqual(event["minimumPoints"], MINIMUM_POINTS)
-
-    @patch("trade_job.trade_helper.OFFSET_TIME_MINUTES", 1)
-    def test_set_default_values_partially_set(self):
-        # Test case where some default values are missing
-        event = {"offsetTime": 10}
-        set_default_values(event)
-        self.assertEqual(event["offsetTime"], 10)  # offsetTime already set
-        self.assertEqual(event["evaluationWindow"], EVALUATION_WINDOW_MINUTES)
-        self.assertEqual(event["minimumPoints"], MINIMUM_POINTS)
-
-    @patch("trade_job.trade_helper.OFFSET_TIME_MINUTES", 1)
-    @patch("trade_job.trade_helper.EVALUATION_WINDOW_MINUTES", 1)
-    @patch("trade_job.trade_helper.MINIMUM_POINTS", 1)
-    def test_set_default_values_all_set(self):
-        # Test case where no default values are set
-        event = {"offsetTime": 20, "evaluationWindow": 30, "minimumPoints": 5}
-        set_default_values(event)
-        self.assertEqual(event["offsetTime"], 20)  # offsetTime already set
-        self.assertEqual(event["evaluationWindow"], 30)  # evaluationWindow already set
-        self.assertEqual(event["minimumPoints"], 5)  # minimumPoints already set
-
-    def test_empty_event(self):
-        # Test case where event is empty
-        event = {}
-        set_default_values(event)
-        self.assertEqual(event["offsetTime"], OFFSET_TIME_MINUTES)
-        self.assertEqual(event["evaluationWindow"], EVALUATION_WINDOW_MINUTES)
-        self.assertEqual(event["minimumPoints"], MINIMUM_POINTS)
-
     @patch("trade_job.trade_helper.TimeFrame.Minute")
     @patch("trade_job.trade_helper.StockBarsRequest")
     @patch("trade_job.trade_helper.datetime")

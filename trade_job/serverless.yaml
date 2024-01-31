@@ -38,15 +38,23 @@ stepFunctions:
       name: tradeJobStepFunction
       definition:
         Comment: A description of my state machine
-        StartAt: Lambda Invoke
+        StartAt: Pass
         States:
+          Pass:
+            Type: Pass
+            Next: Lambda Invoke
+            Parameters:
+              Payload.$: >-
+                States.JsonMerge(States.StringToJson('{"offsetTime": "15",
+                "evaluationWindow": "5", "minimumPoints": "3"}'), $$.Execution.Input,
+                false)
           Lambda Invoke:
             Type: Task
             Resource: arn:aws:states:::lambda:invoke
             OutputPath: $.Payload
             Parameters:
-              Payload.$: $
-              FunctionName: !GetAtt runTradeJob.Arn
+              FunctionName: arn:aws:lambda:eu-west-1:971854288824:function:trade-job-dev-runTradeJob
+              Payload.$: $.Payload
             Retry:
               - ErrorEquals:
                   - Lambda.ServiceException
@@ -57,6 +65,7 @@ stepFunctions:
                 MaxAttempts: 3
                 BackoffRate: 2
             End: true
+
 
 plugins:
   - serverless-better-credentials
