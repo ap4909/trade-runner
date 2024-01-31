@@ -45,8 +45,8 @@ stepFunctions:
             Next: Lambda Invoke
             Parameters:
               Payload.$: >-
-                States.JsonMerge(States.StringToJson('{"offsetTime": "15",
-                "evaluationWindow": "5", "minimumPoints": "3"}'), $$.Execution.Input,
+                States.JsonMerge(States.StringToJson('{"offsetTime": 16,
+                "evaluationWindow": 5, "minimumPoints": 3}'), $$.Execution.Input,
                 false)
           Lambda Invoke:
             Type: Task
