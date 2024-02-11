@@ -26,7 +26,7 @@ def start_trade_run(event, context):
     trading_client = TradingClient(alpaca_api_key, alpaca_secret_key)
 
     bars = get_stock_data(stock_client, symbol, window_size, offset)
-    close_rolling_average = calculate_rolling_average(bars["close"], len(bars))
+    close_rolling_average = calculate_rolling_average(bars['close'], len(bars))
 
     last_average = close_rolling_average.iloc[-1]
     last_price = bars["close"].iloc[-1]
