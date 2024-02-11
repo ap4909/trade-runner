@@ -3,27 +3,30 @@ from alpaca.data.requests import StockBarsRequest
 from alpaca.common.exceptions import APIError
 from alpaca.trading.requests import MarketOrderRequest, GetPortfolioHistoryRequest
 from alpaca.trading.enums import OrderSide, TimeInForce
+import pandas as pd
 import datetime
 
 
-def get_stock_data(client, symbol, offset):
-    today = datetime.datetime.now() - datetime.timedelta(minutes=offset)
+def get_stock_data(client, symbol, window_length_mins, offset):
+    window_end = datetime.datetime.now() - datetime.timedelta(minutes=offset)
+    window_length = datetime.timedelta(minutes=window_length_mins)
+    window_start = window_end - window_length
 
     request_params = StockBarsRequest(
         symbol_or_symbols=symbol,
         timeframe=TimeFrame.Minute,
-        start=today
+        start=window_start
     )
     try:
         bars = client.get_stock_bars(request_params)
     except AttributeError:
         print("Error getting stock bars, data may not be available")
         raise
+    return bars.df
 
-    close_data = bars.df["close"]
-    mean_price = close_data.mean()
-    last_price = close_data.iloc[-1]
-    return mean_price, last_price
+
+def calculate_rolling_average(bars_data, n):
+    return bars_data.rolling(n).mean()
 
 
 def get_open_positions(trading_client, symb):

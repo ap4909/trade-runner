@@ -3,8 +3,11 @@ from unittest.mock import create_autospec, patch
 from alpaca.data.historical import StockHistoricalDataClient
 from alpaca.trading.client import TradingClient
 from alpaca.common.exceptions import APIError
+import pandas as pd
+import numpy as np
 from trade_job.trade_helper import (
     get_stock_data,
+    calculate_rolling_average,
     get_open_positions,
     buying_condition,
     selling_condition,
@@ -23,25 +26,37 @@ class TestTradeHelper(unittest.TestCase):
                             mock_timeframe):
         symbol = 'AAPL'
         offset = 30
+        window_size = 5
 
         mock_datetime.datetime.now.return_value = 2
         mock_datetime.timedelta.return_value = 1
         mock_client = create_autospec(StockHistoricalDataClient)
         mock_stock_bars_request.return_value = 1
 
-        # Mocking the mean value
-        mock_client.get_stock_bars.return_value.df.__getitem__.return_value.mean.return_value = 1
-        # Mocking the last DF value, as returned by iloc
-        mock_client.get_stock_bars.return_value.df.__getitem__.return_value.iloc.__getitem__.return_value = 2
+        mock_client.get_stock_bars.return_value.df = 2
 
-        mean_price, last_price = get_stock_data(mock_client, symbol, offset)
+        result = get_stock_data(mock_client, symbol, window_size, offset)
 
-        self.assertEqual(mean_price, 1)
-        self.assertEqual(last_price, 2)
+        self.assertEqual(result, 2)
+
         mock_stock_bars_request.assert_called_once_with(symbol_or_symbols=symbol,
                                                         timeframe=mock_timeframe,
-                                                        start=1)
+                                                        start=0)
         mock_client.get_stock_bars.assert_called_once_with(1)
+
+    def test_calculate_rolling_average(self):
+        bars = pd.Series({"2024-02-09 23:58:00+00:00": "100",
+                          "2024-02-09 23:59:00+00:00": "200",
+                          "2024-02-10 00:03:00+00:00": "100",
+                          "2024-02-10 00:08:00+00:00": "200"})
+        n = len(bars)
+
+        expected = pd.Series({"2024-02-09 23:58:00+00:00": np.nan,
+                              "2024-02-09 23:59:00+00:00": np.nan,
+                              "2024-02-10 00:03:00+00:00": np.nan,
+                              "2024-02-10 00:08:00+00:00": 150})
+        result = calculate_rolling_average(bars, n)
+        pd.testing.assert_series_equal(result, expected)
 
     def test_get_open_positions_returns_true(self):
         mock_client = create_autospec(TradingClient)
