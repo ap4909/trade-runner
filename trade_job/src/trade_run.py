@@ -1,7 +1,7 @@
 from alpaca.data.historical import StockHistoricalDataClient
-from secrets_helper import get_secret
+from .secrets_helper import get_secret
 from alpaca.trading.client import TradingClient
-from trade_helper import (
+from .trade_helper import (
     get_stock_data,
     get_open_positions,
     buying_condition,

@@ -19,13 +19,15 @@ custom:
     dockerRunCmdExtraArgs: [ '--platform', 'linux/arm64/v8' ]
 
 package:
+  include:
+    - src/**
   exclude:
     - node_modules/**
     - venv/**
 
 functions:
   runTradeJob:
-    handler: trade_run.start_trade_run
+    handler: src.trade_run.start_trade_run
     reservedConcurrency: 1
 
 stepFunctions:
