@@ -5,7 +5,7 @@ from alpaca.trading.client import TradingClient
 from alpaca.common.exceptions import APIError
 import pandas as pd
 import numpy as np
-from trade_job.trade_helper import (
+from trade_job.src.trade_helper import (
     get_stock_data,
     calculate_rolling_average,
     get_open_positions,
@@ -17,9 +17,9 @@ from trade_job.trade_helper import (
 
 
 class TestTradeHelper(unittest.TestCase):
-    @patch("trade_job.trade_helper.TimeFrame.Minute")
-    @patch("trade_job.trade_helper.StockBarsRequest")
-    @patch("trade_job.trade_helper.datetime")
+    @patch("trade_job.src.trade_helper.TimeFrame.Minute")
+    @patch("trade_job.src.trade_helper.StockBarsRequest")
+    @patch("trade_job.src.trade_helper.datetime")
     def test_get_stock_data(self,
                             mock_datetime,
                             mock_stock_bars_request,
@@ -98,9 +98,9 @@ class TestTradeHelper(unittest.TestCase):
     def test_mean_price_greater_last_price_position_held(self):
         assert selling_condition(80, 60, True) == True, "Test case failed"
 
-    @patch("trade_job.trade_helper.TimeInForce")
-    @patch("trade_job.trade_helper.OrderSide")
-    @patch("trade_job.trade_helper.MarketOrderRequest", autospec=True)
+    @patch("trade_job.src.trade_helper.TimeInForce")
+    @patch("trade_job.src.trade_helper.OrderSide")
+    @patch("trade_job.src.trade_helper.MarketOrderRequest", autospec=True)
     def test_buy_stock(self,
                        mock_market_order_request,
                        mock_buy,
@@ -119,9 +119,9 @@ class TestTradeHelper(unittest.TestCase):
 
         mock_client.submit_order.assert_called_once_with(order_data=1)
 
-    @patch("trade_job.trade_helper.TimeInForce")
-    @patch("trade_job.trade_helper.OrderSide")
-    @patch("trade_job.trade_helper.MarketOrderRequest", autospec=True)
+    @patch("trade_job.src.trade_helper.TimeInForce")
+    @patch("trade_job.src.trade_helper.OrderSide")
+    @patch("trade_job.src.trade_helper.MarketOrderRequest", autospec=True)
     def test_sell_stock(self,
                         mock_market_order_request,
                         mock_buy,

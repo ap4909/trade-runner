@@ -1,6 +1,6 @@
 import unittest
 from unittest.mock import MagicMock, patch
-from trade_job.trade_run import start_trade_run
+from trade_job.src.trade_run import start_trade_run
 from trade_job.test.data import payload
 from trade_job.test.data.test_variables import (
     stock_data_df,
@@ -9,16 +9,16 @@ from trade_job.test.data.test_variables import (
 import pandas.testing as pd_testing
 
 
-@patch("trade_job.trade_run.get_secret")
-@patch("trade_job.trade_run.StockHistoricalDataClient")
-@patch("trade_job.trade_run.TradingClient")
-@patch("trade_job.trade_run.get_stock_data")
-@patch("trade_job.trade_run.calculate_rolling_average")
-@patch("trade_job.trade_run.get_open_positions")
-@patch("trade_job.trade_run.buying_condition")
-@patch("trade_job.trade_run.selling_condition")
-@patch("trade_job.trade_run.buy_stock")
-@patch("trade_job.trade_run.sell_stock")
+@patch("trade_job.src.trade_run.get_secret")
+@patch("trade_job.src.trade_run.StockHistoricalDataClient")
+@patch("trade_job.src.trade_run.TradingClient")
+@patch("trade_job.src.trade_run.get_stock_data")
+@patch("trade_job.src.trade_run.calculate_rolling_average")
+@patch("trade_job.src.trade_run.get_open_positions")
+@patch("trade_job.src.trade_run.buying_condition")
+@patch("trade_job.src.trade_run.selling_condition")
+@patch("trade_job.src.trade_run.buy_stock")
+@patch("trade_job.src.trade_run.sell_stock")
 class TestTradeRun(unittest.TestCase):
     def test_start_trade_run_with_buying_condition(self,
                                                    mock_sell_stock,
