@@ -36,7 +36,7 @@ def start_trade_run(event, context):
     if buying_condition(last_average, last_price):
         print("Buying")
         buy_stock(trading_client, symbol)
-    elif selling_condition(last_average, last_price, position_held):
+    elif selling_condition(last_average, last_price) and position_held:
         print("Selling")
         sell_stock(trading_client, symbol)
     else:

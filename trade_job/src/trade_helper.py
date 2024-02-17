@@ -1,9 +1,8 @@
 from alpaca.data.timeframe import TimeFrame
 from alpaca.data.requests import StockBarsRequest
 from alpaca.common.exceptions import APIError
-from alpaca.trading.requests import MarketOrderRequest, GetPortfolioHistoryRequest
+from alpaca.trading.requests import MarketOrderRequest
 from alpaca.trading.enums import OrderSide, TimeInForce
-import pandas as pd
 import datetime
 
 
@@ -48,8 +47,8 @@ def buying_condition(mean_price, last_price):
         return False
 
 
-def selling_condition(mean_price, last_price, pos_held):
-    if mean_price > last_price and pos_held:
+def selling_condition(mean_price, last_price):
+    if mean_price > last_price:
         return True
     else:
         return False
