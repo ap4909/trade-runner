@@ -45,16 +45,20 @@ class TestTradeHelper(unittest.TestCase):
         mock_client.get_stock_bars.assert_called_once_with(1)
 
     def test_calculate_rolling_average(self):
-        bars = pd.Series({"2024-02-09 23:58:00+00:00": "100",
-                          "2024-02-09 23:59:00+00:00": "200",
-                          "2024-02-10 00:03:00+00:00": "100",
-                          "2024-02-10 00:08:00+00:00": "200"})
+        bars = pd.Series({
+                             "2024-02-09 23:58:00+00:00": "100",
+                             "2024-02-09 23:59:00+00:00": "200",
+                             "2024-02-10 00:03:00+00:00": "100",
+                             "2024-02-10 00:08:00+00:00": "200"
+                             })
         n = len(bars)
 
-        expected = pd.Series({"2024-02-09 23:58:00+00:00": np.nan,
-                              "2024-02-09 23:59:00+00:00": np.nan,
-                              "2024-02-10 00:03:00+00:00": np.nan,
-                              "2024-02-10 00:08:00+00:00": 150})
+        expected = pd.Series({
+                                 "2024-02-09 23:58:00+00:00": np.nan,
+                                 "2024-02-09 23:59:00+00:00": np.nan,
+                                 "2024-02-10 00:03:00+00:00": np.nan,
+                                 "2024-02-10 00:08:00+00:00": 150
+                                 })
         result = calculate_rolling_average(bars, n)
         pd.testing.assert_series_equal(result, expected)
 
@@ -83,20 +87,30 @@ class TestTradeHelper(unittest.TestCase):
     def test_buying_condition_mean_price_equal_last_price(self):
         assert buying_condition(50, 50) == False, "Test case failed"
 
-    def test_mean_price_greater_last_price_position_held(self):
-        assert selling_condition(70, 60, True) == True, "Test case failed"
+    def test_selling_condition_mean_price_greater(self):
+        # Test when mean price is greater than last price
+        result = selling_condition(20, 10)
+        self.assertTrue(result)
 
-    def test_mean_price_less_last_price(self):
-        assert selling_condition(50, 60, False) == False, "Test case failed"
+    def test_selling_condition_mean_price_less(self):
+        # Test when mean price is less than last price
+        result = selling_condition(10, 20)
+        self.assertFalse(result)
 
-    def test_mean_price_greater_last_price_position_not_held(self):
-        assert selling_condition(70, 60, False) == False, "Test case failed"
+    def test_selling_condition_mean_price_equal_last_price(self):
+        # Test when mean price is equal to last price
+        result = selling_condition(15, 15)
+        self.assertFalse(result)
 
-    def test_mean_price_equal_last_price_position_held(self):
-        assert selling_condition(60, 60, True) == False, "Test case failed"
+    def test_selling_condition_negative_prices(self):
+        # Test when prices are negative
+        result = selling_condition(-10, -20)
+        self.assertTrue(result)
 
-    def test_mean_price_greater_last_price_position_held(self):
-        assert selling_condition(80, 60, True) == True, "Test case failed"
+    def test_selling_condition_zero_prices(self):
+        # Test when prices are zero
+        result = selling_condition(0, 0)
+        self.assertFalse(result)
 
     @patch("trade_job.src.trade_helper.TimeInForce")
     @patch("trade_job.src.trade_helper.OrderSide")
