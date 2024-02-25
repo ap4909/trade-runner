@@ -47,8 +47,9 @@ class TestTradeRun(unittest.TestCase):
 
         mock_calculate_rolling_average.return_value = rolling_average_values
 
-        position_held = False
-        mock_get_open_positions.return_value = position_held
+        position = MagicMock()
+        position.unrealized_pl = 1
+        mock_get_open_positions.return_value = position
 
         # Set up buying condition to be True
         mock_buying_condition.return_value = True
@@ -99,8 +100,9 @@ class TestTradeRun(unittest.TestCase):
 
         mock_calculate_rolling_average.return_value = rolling_average_values
 
-        position_held = True
-        mock_get_open_positions.return_value = position_held
+        position = MagicMock()
+        position.unrealized_pl = 1
+        mock_get_open_positions.return_value = position
 
         # Set up selling condition to be true
         mock_buying_condition.return_value = False
@@ -151,8 +153,9 @@ class TestTradeRun(unittest.TestCase):
 
         mock_calculate_rolling_average.return_value = rolling_average_values
 
-        position_held = False
-        mock_get_open_positions.return_value = position_held
+        position = MagicMock()
+        position.unrealized_pl = 1
+        mock_get_open_positions.return_value = position
 
         # Set up buying condition to be True
         mock_buying_condition.return_value = False

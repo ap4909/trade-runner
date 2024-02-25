@@ -30,8 +30,8 @@ def calculate_rolling_average(bars_data, n):
 
 def get_open_positions(trading_client, symb):
     try:
-        trading_client.get_open_position(symb)
-        return True
+        position = trading_client.get_open_position(symb)
+        return position
     except APIError as e:
         print(f"Error during open position retrieval, potentially no open positions, message: {e}")
         return False
@@ -78,3 +78,12 @@ def sell_stock(trading_client, symb):
     market_order = trading_client.submit_order(
         order_data=market_order_data
     )
+
+
+def take_profit_reached(take_profit, unrealized_pl):
+    return unrealized_pl >= take_profit
+
+
+def stop_loss_reached(take_profit, unrealized_pl):
+    return unrealized_pl <= take_profit
+
