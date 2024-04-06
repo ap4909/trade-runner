@@ -32,7 +32,7 @@ symbol - Required, stock Symbol to be traded
 offsetTime - Look back time in minutes of the evaluation window to set when retrieving data. Default 16
 windowLength - evaluation window size, minutes. Default 5
 minimumPoints - minimum points required to be in a window for the data to be evaluated. Default 3
-stopLoss - Defaul null
+stopLoss - Default null
 takeProfit - Default null
 ```
 Default values will be set in the Step Function if not defined.
@@ -50,6 +50,7 @@ The Lambda function:
   - if the last price is below the average, and a position is currently held, a sell market order is made
   - if none of these conditions are fulfilled, then no action will be taken
 
+## Running the workflow
 An example payload with all parameters is given below:
 
 ```
@@ -57,11 +58,10 @@ An example payload with all parameters is given below:
         "symbol": "AAPL", // required
         "offsetTime": 16, // required, look back time in minutes of the evaluation window to set when retrieving data. 
         Defaults to 16 as Alpaca API free version has a 15 min delay on latest available data
-        "windowLength": 5 // requred, 
+        "windowLength": 5 // required, 
         "minimumPoints": 3, // minimum points required to be in a window for the data to be evaluated
-        "stopLoss": null
+        "stopLoss": null,
+        "takeProfit": null
        }
 ```
-
-
 

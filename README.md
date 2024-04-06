@@ -8,7 +8,8 @@ Each business functionality is separated into modules. Currently, the existing m
 - trade_job - functionality relating to running and managing trade jobs
 
 ## Set-up
-This section includes information related to setting up for development and operation
+This section includes information related to setting up the endpoints and infrastructure in AWS for development and/or
+operation
 
 ### Pre-requisites
 - An AWS account
@@ -49,4 +50,3 @@ Adding a new Serverless plugin:
 ```
 sudo sls plugin install -n <plugin_name>
 ```
-
