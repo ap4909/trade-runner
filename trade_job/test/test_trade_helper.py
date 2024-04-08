@@ -1,5 +1,5 @@
 import unittest
-from unittest.mock import create_autospec, patch
+from unittest.mock import create_autospec, patch, MagicMock
 from alpaca.data.historical import StockHistoricalDataClient
 from alpaca.trading.client import TradingClient
 from alpaca.common.exceptions import APIError
@@ -9,10 +9,13 @@ from trade_job.src.trade_helper import (
     get_stock_data,
     calculate_rolling_average,
     get_open_positions,
+    take_profit_reached,
+    stop_loss_reached,
     buying_condition,
     selling_condition,
     buy_stock,
-    sell_stock
+    sell_stock,
+    close_positions_by_percentage
 )
 
 
@@ -77,6 +80,66 @@ class TestTradeHelper(unittest.TestCase):
 
         position_held = get_open_positions(mock_client, symbol)
         self.assertFalse(position_held)
+
+    def test_take_profit_reached_true(self):
+        # Test when take_profit is reached
+        take_profit = 100
+        unrealized_pl = 120
+        self.assertTrue(take_profit_reached(take_profit, unrealized_pl))
+
+    def test_take_profit_reached_false(self):
+        # Test when take_profit is not reached
+        take_profit = 100
+        unrealized_pl = 80
+        self.assertFalse(take_profit_reached(take_profit, unrealized_pl))
+
+    def test_take_profit_reached_equal(self):
+        # Test when unrealized_pl is equal to take_profit
+        take_profit = 100
+        unrealized_pl = 100
+        self.assertTrue(take_profit_reached(take_profit, unrealized_pl))
+
+    def test_take_profit_reached_negative(self):
+        # Test when unrealized_pl is negative
+        take_profit = 100
+        unrealized_pl = -50
+        self.assertFalse(take_profit_reached(take_profit, unrealized_pl))
+
+    def test_take_profit_reached_zero(self):
+        # Test when unrealized_pl is zero
+        take_profit = 100
+        unrealized_pl = 0
+        self.assertFalse(take_profit_reached(take_profit, unrealized_pl))
+
+    def test_stop_loss_reached_true(self):
+        # Test when stop_loss is reached
+        stop_loss = -100
+        unrealized_pl = -120
+        self.assertTrue(stop_loss_reached(stop_loss, unrealized_pl))
+
+    def test_stop_loss_reached_false(self):
+        # Test when stop_loss is not reached
+        stop_loss = -100
+        unrealized_pl = -80
+        self.assertFalse(stop_loss_reached(stop_loss, unrealized_pl))
+
+    def test_stop_loss_reached_equal(self):
+        # Test when unrealized_pl is equal to stop_loss
+        stop_loss = -100
+        unrealized_pl = -100
+        self.assertTrue(stop_loss_reached(stop_loss, unrealized_pl))
+
+    def test_stop_loss_reached_positive(self):
+        # Test when unrealized_pl is positive
+        stop_loss = -100
+        unrealized_pl = 50
+        self.assertFalse(stop_loss_reached(stop_loss, unrealized_pl))
+
+    def test_stop_loss_reached_zero(self):
+        # Test when unrealized_pl is zero
+        stop_loss = -100
+        unrealized_pl = 0
+        self.assertFalse(stop_loss_reached(stop_loss, unrealized_pl))
 
     def test_buying_condition_mean_price_less_last_price(self):
         assert buying_condition(50, 60) == True, "Test case failed"
@@ -153,6 +216,22 @@ class TestTradeHelper(unittest.TestCase):
             time_in_force=mock_day.DAY)
 
         mock_client.submit_order.assert_called_once_with(order_data=1)
+
+    @patch("trade_job.src.trade_helper.ClosePositionRequest", autospec=True)
+    def test_close_positions_by_percentage(self,
+                                           mock_close_position_request):
+        # Mocking trading client
+        trading_client = create_autospec(TradingClient)
+
+        # Test data
+        symbol = "AAPL"
+        percentage = 50
+
+        # Calling the function
+        close_positions_by_percentage(trading_client, symbol, percentage)
+
+        # Asserting if close_position method was called with correct arguments
+        trading_client.close_position.assert_called_once_with(symbol_or_asset_id=symbol, close_options=mock_close_position_request(percentage=percentage))
 
 
 if __name__ == '__main__':

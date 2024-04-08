@@ -37,7 +37,7 @@ def start_trade_run(event, context):
 
     position = get_open_positions(trading_client, symbol)
 
-    unrealized_pl = position.unrealized_pl
+    unrealized_pl = float(position.unrealized_pl)
 
     # Check if take profit/stop loss reached
     if take_profit_reached(take_profit, unrealized_pl):

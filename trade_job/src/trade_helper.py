@@ -1,7 +1,7 @@
 from alpaca.data.timeframe import TimeFrame
 from alpaca.data.requests import StockBarsRequest
 from alpaca.common.exceptions import APIError
-from alpaca.trading.requests import MarketOrderRequest
+from alpaca.trading.requests import MarketOrderRequest, ClosePositionRequest
 from alpaca.trading.enums import OrderSide, TimeInForce
 import datetime
 
@@ -87,3 +87,12 @@ def take_profit_reached(take_profit, unrealized_pl):
 def stop_loss_reached(take_profit, unrealized_pl):
     return unrealized_pl <= take_profit
 
+
+def close_positions_by_percentage(trading_client, symbol, percentage):
+    close_position_request = ClosePositionRequest(
+        percentage=percentage
+    )
+    trading_client.close_position(
+        symbol_or_asset_id=symbol,
+        close_options=close_position_request
+    )
