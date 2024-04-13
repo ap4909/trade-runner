@@ -43,10 +43,10 @@ def start_trade_run(event, context):
     # Check if take profit/stop loss reached
     if take_profit_reached(take_profit, unrealized_pl):
         print("Take Profit limit reached, selling all shares...")
-        close_positions_by_percentage(trading_client, symbol, 100)
+        close_positions_by_percentage(trading_client, symbol, "100")
     elif stop_loss_reached(stop_loss, unrealized_pl):
         print("Stop Loss limit reached, selling all shares...")
-        close_positions_by_percentage(trading_client, symbol, 100)
+        close_positions_by_percentage(trading_client, symbol, "100")
 
     # Evaluate buying/selling conditions
     if buying_condition(last_average, last_price):

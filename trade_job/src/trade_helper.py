@@ -93,7 +93,11 @@ def close_positions_by_percentage(trading_client, symbol, percentage):
     close_position_request = ClosePositionRequest(
         percentage=percentage
     )
-    trading_client.close_position(
-        symbol_or_asset_id=symbol,
-        close_options=close_position_request
-    )
+    try:
+        close_response = trading_client.close_position(
+            symbol_or_asset_id=symbol,
+            close_options=close_position_request
+        )
+    except Exception as e:
+        print(f"Error when closing position, message: {e}")
+        raise
