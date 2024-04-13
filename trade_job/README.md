@@ -29,7 +29,7 @@ More details on the steps in the process are explained below.
 A JSON payload is sent in the form of a POST request, and contains the information regarding a stock and the parameters to be used when evaluating whether to make a buy or sell order. The details on these parameters are given below:
 ```
 symbol - Required, stock Symbol to be traded
-offsetTime - Look back time in minutes of the evaluation window to set when retrieving data. Default 16
+offsetTime - Look back time in minutes of the end of the data evaluation window. Default 16
 windowLength - evaluation window size, minutes. Default 5
 minimumPoints - minimum points required to be in a window for the data to be evaluated. Default 3
 stopLoss - Default null

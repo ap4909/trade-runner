@@ -14,7 +14,8 @@ def get_stock_data(client, symbol, window_length_mins, offset):
     request_params = StockBarsRequest(
         symbol_or_symbols=symbol,
         timeframe=TimeFrame.Minute,
-        start=window_start
+        start=window_start,
+        end=window_end
     )
     try:
         bars = client.get_stock_bars(request_params)

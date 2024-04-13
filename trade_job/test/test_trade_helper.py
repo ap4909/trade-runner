@@ -44,7 +44,8 @@ class TestTradeHelper(unittest.TestCase):
 
         mock_stock_bars_request.assert_called_once_with(symbol_or_symbols=symbol,
                                                         timeframe=mock_timeframe,
-                                                        start=0)
+                                                        start=0,
+                                                        end=1)
         mock_client.get_stock_bars.assert_called_once_with(1)
 
     def test_calculate_rolling_average(self):
