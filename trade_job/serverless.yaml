@@ -70,8 +70,21 @@ stepFunctions:
                 IntervalSeconds: 1
                 MaxAttempts: 3
                 BackoffRate: 2
+            Next: Choice
+          Choice:
+            Type: Choice
+            Choices:
+              - Variable: $.cancelTradeJob
+                NumericEquals: 1
+                Next: Pass (1)
+            Default: Wait
+          Pass (1):
+            Type: Pass
             End: true
-
+          Wait:
+            Type: Wait
+            Seconds: 5
+            End: true
 
 plugins:
   - serverless-better-credentials
