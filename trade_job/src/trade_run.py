@@ -4,8 +4,7 @@ from alpaca.trading.client import TradingClient
 from src.trade_helper import (
     get_stock_data,
     get_open_positions,
-    take_profit_reached,
-    stop_loss_reached,
+    profit_loss_reached,
     buying_condition,
     selling_condition,
     buy_stock,
@@ -37,16 +36,12 @@ def start_trade_run(event, context):
     last_price = bars["close"].iloc[-1]
 
     position = get_open_positions(trading_client, symbol)
-
-    unrealized_pl = float(position.unrealized_pl)
-
-    # Check if take profit/stop loss reached
-    if take_profit_reached(take_profit, unrealized_pl):
-        print("Take Profit limit reached, selling all shares...")
-        close_positions_by_percentage(trading_client, symbol, "100")
-    elif stop_loss_reached(stop_loss, unrealized_pl):
-        print("Stop Loss limit reached, selling all shares...")
-        close_positions_by_percentage(trading_client, symbol, "100")
+    if position:
+        unrealized_pl = float(position.unrealized_pl)
+        # Check if take profit/stop loss reached
+        if profit_loss_reached(take_profit, stop_loss, unrealized_pl):
+            close_positions_by_percentage(trading_client, symbol, "100")
+            return {"cancelTradeJob": 1}
 
     # Evaluate buying/selling conditions
     if buying_condition(last_average, last_price):
@@ -57,3 +52,5 @@ def start_trade_run(event, context):
         sell_stock(trading_client, symbol)
     else:
         print("Not buying or selling...")
+
+    return {"cancelTradeJob": 0}

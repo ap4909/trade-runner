@@ -81,12 +81,15 @@ def sell_stock(trading_client, symb):
     )
 
 
-def take_profit_reached(take_profit, unrealized_pl):
-    return unrealized_pl >= take_profit
-
-
-def stop_loss_reached(take_profit, unrealized_pl):
-    return unrealized_pl <= take_profit
+def profit_loss_reached(take_profit, stop_loss, unrealized_pl):
+    if unrealized_pl >= take_profit:
+        print("Profit has reached take-profit limit")
+        return True
+    elif unrealized_pl <= stop_loss:
+        print("Loss has reached take stop-loss limit")
+        return True
+    else:
+        return False
 
 
 def close_positions_by_percentage(trading_client, symbol, percentage):
