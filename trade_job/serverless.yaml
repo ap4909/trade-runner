@@ -46,21 +46,16 @@ stepFunctions:
             Type: Pass
             Next: Lambda Invoke
             Parameters:
-              Payload.$: >-
-                States.JsonMerge(States.StringToJson('
-                {"offsetTime": 16,
-                "windowLength": 5,
-                "minimumPoints": 3,
-                "stopLoss": null}'
-                ), $$.Execution.Input,
-                false)
+              runParameters.$: >-
+                States.JsonMerge(States.StringToJson(' {"offsetTime": 16,
+                "windowLength": 5, "minimumPoints": 3, "stopLoss": null,
+                "maxIterations": 540, "iteration": 0}' ), $$.Execution.Input, false)
           Lambda Invoke:
             Type: Task
             Resource: arn:aws:states:::lambda:invoke
-            OutputPath: $.Payload
             Parameters:
               FunctionName: arn:aws:lambda:eu-west-1:971854288824:function:trade-job-dev-runTradeJob
-              Payload.$: $.Payload
+              Payload.$: $.runParameters
             Retry:
               - ErrorEquals:
                   - Lambda.ServiceException
@@ -71,11 +66,17 @@ stepFunctions:
                 MaxAttempts: 3
                 BackoffRate: 2
             Next: Choice
+            ResultSelector:
+              cancelTradeJob.$: $.Payload.cancelTradeJob
+            ResultPath: $.tradeRunResult
           Choice:
             Type: Choice
             Choices:
-              - Variable: $.cancelTradeJob
-                NumericEquals: 1
+              - Or:
+                  - Variable: $.tradeRunResult.cancelTradeJob
+                    NumericEquals: 1
+                  - Variable: $.tradeRunResult.runParameters.iterations
+                    NumericGreaterThanEqualsPath: $.tradeRunResult.runParameters.maxIterations
                 Next: Pass (1)
             Default: Wait
           Pass (1):
@@ -83,7 +84,7 @@ stepFunctions:
             End: true
           Wait:
             Type: Wait
-            Seconds: 5
+            Seconds: 60
             End: true
 
 plugins:
