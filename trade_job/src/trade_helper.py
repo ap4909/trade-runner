@@ -104,3 +104,8 @@ def close_positions_by_percentage(trading_client, symbol, percentage):
     except Exception as e:
         print(f"Error when closing position, message: {e}")
         raise
+
+
+def increment_run_count(count):
+    count += 1
+    return count

@@ -46,16 +46,16 @@ stepFunctions:
             Type: Pass
             Next: Lambda Invoke
             Parameters:
-              runParameters.$: >-
+              jobParameters.$: >-
                 States.JsonMerge(States.StringToJson(' {"offsetTime": 16,
                 "windowLength": 5, "minimumPoints": 3, "stopLoss": null,
-                "maxIterations": 540, "iteration": 0}' ), $$.Execution.Input, false)
+                "maxRuns": 540}' ), $$.Execution.Input, false)
           Lambda Invoke:
             Type: Task
             Resource: arn:aws:states:::lambda:invoke
             Parameters:
               FunctionName: arn:aws:lambda:eu-west-1:971854288824:function:trade-job-dev-runTradeJob
-              Payload.$: $.runParameters
+              Payload.$: $
             Retry:
               - ErrorEquals:
                   - Lambda.ServiceException
@@ -68,15 +68,13 @@ stepFunctions:
             Next: Choice
             ResultSelector:
               cancelTradeJob.$: $.Payload.cancelTradeJob
-            ResultPath: $.tradeRunResult
+              runCount.$: $.Payload.runCount
+            ResultPath: $.jobStatus
           Choice:
             Type: Choice
             Choices:
-              - Or:
-                  - Variable: $.tradeRunResult.cancelTradeJob
-                    NumericEquals: 1
-                  - Variable: $.tradeRunResult.runParameters.iterations
-                    NumericGreaterThanEqualsPath: $.tradeRunResult.runParameters.maxIterations
+              - Variable: $.jobStatus.cancelTradeJob
+                NumericEquals: 1
                 Next: Pass (1)
             Default: Wait
           Pass (1):

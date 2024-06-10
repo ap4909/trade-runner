@@ -10,18 +10,27 @@ from src.trade_helper import (
     buy_stock,
     sell_stock,
     calculate_rolling_average,
-    close_positions_by_percentage
+    close_positions_by_percentage,
+    increment_run_count
 )
 
 
 def start_trade_run(event, context):
     secret = get_secret()
 
-    symbol = event["symbol"]
-    offset = event["offsetTime"]
-    window_length = event["windowLength"]
-    take_profit = event["takeProfit"]
-    stop_loss = event["stopLoss"]
+    job_parameters = event["jobParameters"]
+    symbol = job_parameters["symbol"]
+    offset = job_parameters["offsetTime"]
+    window_length = job_parameters["windowLength"]
+    take_profit = job_parameters["takeProfit"]
+    stop_loss = job_parameters["stopLoss"]
+    max_runs = job_parameters["maxRuns"]
+
+    job_status = event.get("jobStatus")
+    if job_status:
+        run_count = job_status.get["runCount"]
+    else:
+        run_count = 0
 
     alpaca_api_key = secret['alpaca_api_key']
     alpaca_secret_key = secret['alpaca_secret_key']
@@ -53,4 +62,11 @@ def start_trade_run(event, context):
     else:
         print("Not buying or selling...")
 
-    return {"cancelTradeJob": 0}
+    run_count = increment_run_count(run_count)
+    if run_count == max_runs:
+        print("Run limit reached, job should now be cancelled; returning trade job cancellation indicator")
+        return {"cancelTradeJob": 1,
+                "runCount": run_count}
+
+    return {"cancelTradeJob": 0,
+            "runCount": run_count}
