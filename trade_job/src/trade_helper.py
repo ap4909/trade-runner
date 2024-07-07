@@ -6,6 +6,14 @@ from alpaca.trading.enums import OrderSide, TimeInForce
 import datetime
 
 
+def get_current_run_count(job_status):
+    if job_status:
+        run_count = job_status.get("runCount")
+    else:
+        run_count = 0
+    return run_count
+
+
 def get_stock_data(client, symbol, window_length_mins, offset):
     window_end = datetime.datetime.now() - datetime.timedelta(minutes=offset)
     window_length = datetime.timedelta(minutes=window_length_mins)
@@ -86,7 +94,7 @@ def profit_loss_reached(take_profit, stop_loss, unrealized_pl):
         print("Profit has reached take-profit limit")
         return True
     elif unrealized_pl <= stop_loss:
-        print("Loss has reached take stop-loss limit")
+        print("Loss has reached stop-loss limit")
         return True
     else:
         return False

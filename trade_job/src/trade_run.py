@@ -11,7 +11,8 @@ from src.trade_helper import (
     sell_stock,
     calculate_rolling_average,
     close_positions_by_percentage,
-    increment_run_count
+    increment_run_count,
+    get_current_run_count
 )
 
 
@@ -27,10 +28,7 @@ def start_trade_run(event, context):
     max_runs = job_parameters["maxRuns"]
 
     job_status = event.get("jobStatus")
-    if job_status:
-        run_count = job_status.get["runCount"]
-    else:
-        run_count = 0
+    run_count = get_current_run_count(job_status)
 
     alpaca_api_key = secret['alpaca_api_key']
     alpaca_secret_key = secret['alpaca_secret_key']
@@ -38,12 +36,7 @@ def start_trade_run(event, context):
     stock_client = StockHistoricalDataClient(alpaca_api_key, alpaca_secret_key)
     trading_client = TradingClient(alpaca_api_key, alpaca_secret_key)
 
-    bars = get_stock_data(stock_client, symbol, window_length, offset)
-    close_rolling_average = calculate_rolling_average(bars['close'], len(bars))
-
-    last_average = close_rolling_average.iloc[-1]
-    last_price = bars["close"].iloc[-1]
-
+    # check open positions for
     position = get_open_positions(trading_client, symbol)
     if position:
         unrealized_pl = float(position.unrealized_pl)
@@ -53,6 +46,12 @@ def start_trade_run(event, context):
             return {"cancelTradeJob": 1}
 
     # Evaluate buying/selling conditions
+    bars = get_stock_data(stock_client, symbol, window_length, offset)
+    close_rolling_average = calculate_rolling_average(bars['close'], len(bars))
+
+    last_average = close_rolling_average.iloc[-1]
+    last_price = bars["close"].iloc[-1]
+
     if buying_condition(last_average, last_price):
         print("Buying")
         buy_stock(trading_client, symbol)
