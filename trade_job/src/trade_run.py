@@ -62,7 +62,7 @@ def start_trade_run(event, context):
         print("Not buying or selling...")
 
     run_count = increment_run_count(run_count)
-    if run_count == max_runs:
+    if run_count >= max_runs:
         print("Run limit reached, job should now be cancelled; returning trade job cancellation indicator")
         return {"cancelTradeJob": 1,
                 "runCount": run_count}
