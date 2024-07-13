@@ -5,12 +5,13 @@ from alpaca.trading.client import TradingClient
 from alpaca.common.exceptions import APIError
 import pandas as pd
 import numpy as np
+import sys
+from io import StringIO
 from trade_job.src.trade_helper import (
     get_stock_data,
     calculate_rolling_average,
     get_open_positions,
-    take_profit_reached,
-    stop_loss_reached,
+    profit_loss_reached,
     buying_condition,
     selling_condition,
     buy_stock,
@@ -20,6 +21,17 @@ from trade_job.src.trade_helper import (
 
 
 class TestTradeHelper(unittest.TestCase):
+
+    def setUp(self):
+        # Redirect stdout to capture print statements
+        self.held_stdout = sys.stdout
+        self.stdout = StringIO()
+        sys.stdout = self.stdout
+
+    def tearDown(self):
+        # Restore stdout
+        sys.stdout = self.held_stdout
+
     @patch("trade_job.src.trade_helper.TimeFrame.Minute")
     @patch("trade_job.src.trade_helper.StockBarsRequest")
     @patch("trade_job.src.trade_helper.datetime")
@@ -82,65 +94,30 @@ class TestTradeHelper(unittest.TestCase):
         position_held = get_open_positions(mock_client, symbol)
         self.assertFalse(position_held)
 
-    def test_take_profit_reached_true(self):
-        # Test when take_profit is reached
-        take_profit = 100
-        unrealized_pl = 120
-        self.assertTrue(take_profit_reached(take_profit, unrealized_pl))
+    def test_profit_loss_reached_profit_reached(self):
+        self.assertTrue(profit_loss_reached(100, -50, 150))
+        output = self.stdout.getvalue().strip()
+        self.assertEqual(output, "Profit has reached take-profit limit")
 
-    def test_take_profit_reached_false(self):
-        # Test when take_profit is not reached
-        take_profit = 100
-        unrealized_pl = 80
-        self.assertFalse(take_profit_reached(take_profit, unrealized_pl))
+    def test_profit_loss_reached_loss_reached(self):
+        self.assertTrue(profit_loss_reached(100, -50, -100))
+        output = self.stdout.getvalue().strip()
+        self.assertEqual(output, "Loss has reached stop-loss limit")
 
-    def test_take_profit_reached_equal(self):
-        # Test when unrealized_pl is equal to take_profit
-        take_profit = 100
-        unrealized_pl = 100
-        self.assertTrue(take_profit_reached(take_profit, unrealized_pl))
+    def test_profit_loss_reached_no_limit_reached(self):
+        self.assertFalse(profit_loss_reached(100, -50, 25))
+        output = self.stdout.getvalue().strip()
+        self.assertEqual(output, "")
 
-    def test_take_profit_reached_negative(self):
-        # Test when unrealized_pl is negative
-        take_profit = 100
-        unrealized_pl = -50
-        self.assertFalse(take_profit_reached(take_profit, unrealized_pl))
+    def test_profit_loss_reached_at_take_profit_boundary(self):
+        self.assertTrue(profit_loss_reached(100, -50, 100))
+        output = self.stdout.getvalue().strip()
+        self.assertEqual(output, "Profit has reached take-profit limit")
 
-    def test_take_profit_reached_zero(self):
-        # Test when unrealized_pl is zero
-        take_profit = 100
-        unrealized_pl = 0
-        self.assertFalse(take_profit_reached(take_profit, unrealized_pl))
-
-    def test_stop_loss_reached_true(self):
-        # Test when stop_loss is reached
-        stop_loss = -100
-        unrealized_pl = -120
-        self.assertTrue(stop_loss_reached(stop_loss, unrealized_pl))
-
-    def test_stop_loss_reached_false(self):
-        # Test when stop_loss is not reached
-        stop_loss = -100
-        unrealized_pl = -80
-        self.assertFalse(stop_loss_reached(stop_loss, unrealized_pl))
-
-    def test_stop_loss_reached_equal(self):
-        # Test when unrealized_pl is equal to stop_loss
-        stop_loss = -100
-        unrealized_pl = -100
-        self.assertTrue(stop_loss_reached(stop_loss, unrealized_pl))
-
-    def test_stop_loss_reached_positive(self):
-        # Test when unrealized_pl is positive
-        stop_loss = -100
-        unrealized_pl = 50
-        self.assertFalse(stop_loss_reached(stop_loss, unrealized_pl))
-
-    def test_stop_loss_reached_zero(self):
-        # Test when unrealized_pl is zero
-        stop_loss = -100
-        unrealized_pl = 0
-        self.assertFalse(stop_loss_reached(stop_loss, unrealized_pl))
+    def test_profit_loss_reached_at_stop_loss_boundary(self):
+        self.assertTrue(profit_loss_reached(100, -50, -50))
+        output = self.stdout.getvalue().strip()
+        self.assertEqual(output, "Loss has reached stop-loss limit")
 
     def test_buying_condition_mean_price_less_last_price(self):
         assert buying_condition(50, 60) == True, "Test case failed"

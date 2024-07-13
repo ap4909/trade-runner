@@ -36,7 +36,7 @@ def start_trade_run(event, context):
     stock_client = StockHistoricalDataClient(alpaca_api_key, alpaca_secret_key)
     trading_client = TradingClient(alpaca_api_key, alpaca_secret_key)
 
-    # check open positions for
+    # check profit/loss limits
     position = get_open_positions(trading_client, symbol)
     if position:
         unrealized_pl = float(position.unrealized_pl)
