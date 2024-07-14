@@ -25,8 +25,9 @@ The status of this process is tracked in a database entry. A flowchart of the pr
 
 More details on the steps in the process are explained below.
 
-### Client device => API Gateway
-A JSON payload is sent in the form of a POST request, and contains the information regarding a stock and the parameters to be used when evaluating whether to make a buy or sell order. The details on these parameters are given below:
+### 1. API Gateway
+A JSON payload is sent in the form of a POST request, and contains the information regarding a stock and the 
+parameters to be used when evaluating whether to make a buy or sell order. The details on these parameters are given below:
 ```
 symbol - Required, stock Symbol to be traded
 offsetTime - Look back time in minutes of the end of the data evaluation window. Default 16
@@ -35,20 +36,31 @@ minimumPoints - minimum points required to be in a window for the data to be eva
 stopLoss - Default null
 takeProfit - Default null
 ```
-Default values will be set in the Step Function if not defined.
+The JSON payload is passed to the Step Function.
 
-### Step function
-The Step Function first the default values for any parameter which has not been set. It then passes this to the Lambda function. The Lambda will complete it's run, which will evaluate the data and either make a buy, sell order or do nothing.
+### 1. Step function
+The Step Function first sets the default values for any parameter which has not been set. It then passes this to the 
+Lambda function. The Lambda will complete it's run, which will evaluate the data and either make a buy, sell order 
+or do nothing.
 
-Once the Lambda has finished its run, the output is passed back to the step function which then either schedules the next run or stops the job.
-
-### Lambda Function
+### 2. Lambda Function
 The Lambda function:
 - Retrieves the Stock bar data available for the defined window from the Alpaca API
-- Evaluates the moving average over the time window and the last available price to it
+- Evaluates the current profit and loss to establish whether limits have been reached
+  - if limits have been reached, then sell all open positions and cancel the job
+- Evaluates the moving average over the time window and compares the last available price to it
   - if the last price is above the average, a buy market order is made 
   - if the last price is below the average, and a position is currently held, a sell market order is made
   - if none of these conditions are fulfilled, then no action will be taken
+- Checks whether the the maximum number of runs has been reached
+  - if so, return indicator that the jobs should be cancelled (`cancelTradeJob: 1`) to step function
+  - else return indication that job should not be cancelled (`cancelTradeJob: 0`)
+
+### 3. Step Function
+- Output from Lambda function is checked to see whether job should be cancelled
+  - if cancelTradeJob = 1 the job is ended
+  - if cancelTradeJob = 0 the Lambda is run again
+
 
 ## Running the workflow
 An example payload with all parameters is given below:
@@ -61,7 +73,8 @@ An example payload with all parameters is given below:
         "windowLength": 5 // required, 
         "minimumPoints": 3, // minimum points required to be in a window for the data to be evaluated
         "stopLoss": null,
-        "takeProfit": null
+        "takeProfit": null,
+        "maxRuns": 3 // maximum number of runs of the lambda
        }
 ```
 
