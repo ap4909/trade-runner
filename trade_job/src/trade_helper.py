@@ -1,9 +1,10 @@
 from alpaca.data.timeframe import TimeFrame
 from alpaca.data.requests import StockBarsRequest
 from alpaca.common.exceptions import APIError
-from alpaca.trading.requests import MarketOrderRequest, ClosePositionRequest
+from alpaca.trading.requests import MarketOrderRequest, ClosePositionRequest, GetOrdersRequest
 from alpaca.trading.enums import OrderSide, TimeInForce
 import datetime
+from constants import MAX_RETRIES
 
 
 def get_current_run_count(job_status):
@@ -47,6 +48,24 @@ def get_open_positions(trading_client, symb):
     except Exception as e:
         print(f"Error during open position retrieval, message: {e}")
         raise
+
+
+def get_open_orders(trading_client, symbol):
+    print("Getting open orders")
+    attempts = 0
+    request_params = GetOrdersRequest(
+        status="Open",
+        symbol=symbol
+    )
+    while attempts < MAX_RETRIES:
+        try:
+            orders = trading_client.get_orders(request_params)
+            return orders
+        except Exception as e:
+            print(f"Error during open order retrieval, message: {e}. Retrying...")
+            attempts += 1
+            if attempts == MAX_RETRIES:
+                raise Exception(f"Error during open order retrieval: all {MAX_RETRIES} attempts failed") from e
 
 
 def buying_condition(mean_price, last_price):

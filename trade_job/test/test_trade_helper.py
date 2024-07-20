@@ -11,6 +11,7 @@ from trade_job.src.trade_helper import (
     get_stock_data,
     calculate_rolling_average,
     get_open_positions,
+    get_open_orders,
     profit_loss_reached,
     buying_condition,
     selling_condition,
@@ -93,6 +94,20 @@ class TestTradeHelper(unittest.TestCase):
 
         position_held = get_open_positions(mock_client, symbol)
         self.assertFalse(position_held)
+
+    @patch("trade_job.src.trade_helper.GetOrdersRequest")
+    def test_get_open_orders(self,
+                             mock_get_orders_request):
+        mock_client = create_autospec(TradingClient)
+        mock_client.get_orders.return_value = [{"orderid": 1}]
+
+        symbol = 'AAPL'
+        orders = get_open_orders(mock_client, symbol)
+
+        mock_get_orders_request.assert_called_once_with(symbol=symbol,
+                                                        status="Open")
+        mock_client.get_orders.assert_called_once()
+        self.assertEqual(orders, [{"orderid": 1}])
 
     def test_profit_loss_reached_profit_reached(self):
         self.assertTrue(profit_loss_reached(100, -50, 150))

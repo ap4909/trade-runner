@@ -30,6 +30,7 @@ def start_trade_run(event, context):
     job_status = event.get("jobStatus")
     run_count = get_current_run_count(job_status)
 
+    # Setup Alpaca API clients
     alpaca_api_key = secret['alpaca_api_key']
     alpaca_secret_key = secret['alpaca_secret_key']
 
@@ -61,6 +62,7 @@ def start_trade_run(event, context):
     else:
         print("Not buying or selling...")
 
+    # Check run count
     run_count = increment_run_count(run_count)
     if run_count >= max_runs:
         print("Run limit reached, job should now be cancelled; returning trade job cancellation indicator")
