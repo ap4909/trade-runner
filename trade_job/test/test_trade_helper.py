@@ -11,12 +11,11 @@ from trade_job.src.trade_helper import (
     get_stock_data,
     calculate_rolling_average,
     get_open_positions,
-    get_open_orders,
+    get_orders,
     profit_loss_reached,
     buying_condition,
     selling_condition,
     buy_stock,
-    sell_stock,
     close_positions_by_percentage
 )
 
@@ -63,19 +62,19 @@ class TestTradeHelper(unittest.TestCase):
 
     def test_calculate_rolling_average(self):
         bars = pd.Series({
-                             "2024-02-09 23:58:00+00:00": "100",
-                             "2024-02-09 23:59:00+00:00": "200",
-                             "2024-02-10 00:03:00+00:00": "100",
-                             "2024-02-10 00:08:00+00:00": "200"
-                             })
+            "2024-02-09 23:58:00+00:00": "100",
+            "2024-02-09 23:59:00+00:00": "200",
+            "2024-02-10 00:03:00+00:00": "100",
+            "2024-02-10 00:08:00+00:00": "200"
+        })
         n = len(bars)
 
         expected = pd.Series({
-                                 "2024-02-09 23:58:00+00:00": np.nan,
-                                 "2024-02-09 23:59:00+00:00": np.nan,
-                                 "2024-02-10 00:03:00+00:00": np.nan,
-                                 "2024-02-10 00:08:00+00:00": 150
-                                 })
+            "2024-02-09 23:58:00+00:00": np.nan,
+            "2024-02-09 23:59:00+00:00": np.nan,
+            "2024-02-10 00:03:00+00:00": np.nan,
+            "2024-02-10 00:08:00+00:00": 150
+        })
         result = calculate_rolling_average(bars, n)
         pd.testing.assert_series_equal(result, expected)
 
@@ -96,18 +95,22 @@ class TestTradeHelper(unittest.TestCase):
         self.assertFalse(position_held)
 
     @patch("trade_job.src.trade_helper.GetOrdersRequest")
-    def test_get_open_orders(self,
-                             mock_get_orders_request):
+    def test_get_orders(self,
+                        mock_get_orders_request):
         mock_client = create_autospec(TradingClient)
-        mock_client.get_orders.return_value = [{"orderid": 1}]
+        mock_client.get_orders.return_value = [{
+                                                   "orderid": 1
+                                                   }]
 
         symbol = 'AAPL'
-        orders = get_open_orders(mock_client, symbol)
+        orders = get_orders(mock_client, symbol)
 
         mock_get_orders_request.assert_called_once_with(symbol=symbol,
                                                         status="Open")
         mock_client.get_orders.assert_called_once()
-        self.assertEqual(orders, [{"orderid": 1}])
+        self.assertEqual(orders, [{
+                                      "orderid": 1
+                                      }])
 
     def test_profit_loss_reached_profit_reached(self):
         self.assertTrue(profit_loss_reached(100, -50, 150))
@@ -224,7 +227,9 @@ class TestTradeHelper(unittest.TestCase):
         close_positions_by_percentage(trading_client, symbol, percentage)
 
         # Asserting if close_position method was called with correct arguments
-        trading_client.close_position.assert_called_once_with(symbol_or_asset_id=symbol, close_options=mock_close_position_request(percentage=percentage))
+        trading_client.close_position.assert_called_once_with(symbol_or_asset_id=symbol,
+                                                              close_options=mock_close_position_request(
+                                                                  percentage=percentage))
 
 
 if __name__ == '__main__':
