@@ -4,11 +4,14 @@ from alpaca.trading.client import TradingClient
 from src.trade_helper import (
     get_stock_data,
     get_open_positions,
+    calculate_realized_pnl,
     profit_loss_reached,
+    get_orders,
+    filter_for_closed_orders,
     buying_condition,
     selling_condition,
+    cancel_orders,
     buy_stock,
-    sell_stock,
     calculate_rolling_average,
     close_positions_by_percentage,
     increment_run_count,
@@ -38,13 +41,20 @@ def start_trade_run(event, context):
     trading_client = TradingClient(alpaca_api_key, alpaca_secret_key)
 
     # check profit/loss limits
+    all_orders = get_orders(trading_client, symbol, 'all', context['Execution']['StartTime'])
+    closed_orders = filter_for_closed_orders(all_orders)
+    if closed_orders:
+        realized_pnl = calculate_realized_pnl(closed_orders)
+
     position = get_open_positions(trading_client, symbol)
     if position:
-        unrealized_pl = float(position.unrealized_pl)
-        # Check if take profit/stop loss reached
-        if profit_loss_reached(take_profit, stop_loss, unrealized_pl):
-            close_positions_by_percentage(trading_client, symbol, "100")
-            return {"cancelTradeJob": 1}
+        unrealized_pnl = float(position.unrealized_pl)
+
+    pnl = realized_pnl + unrealized_pnl
+
+    if profit_loss_reached(take_profit, stop_loss, pnl):
+        close_positions_by_percentage(trading_client, symbol, "100")
+        return {"cancelTradeJob": 1}
 
     # Evaluate buying/selling conditions
     bars = get_stock_data(stock_client, symbol, window_length, offset)
@@ -58,7 +68,8 @@ def start_trade_run(event, context):
         buy_stock(trading_client, symbol)
     elif selling_condition(last_average, last_price) and position:
         print("Selling")
-        sell_stock(trading_client, symbol)
+        #cancel_orders(open_orders)
+        close_positions_by_percentage(trading_client, symbol, "100")
     else:
         print("Not buying or selling...")
 

@@ -50,12 +50,13 @@ def get_open_positions(trading_client, symb):
         raise
 
 
-def get_open_orders(trading_client, symbol):
+def get_orders(trading_client, symbol, status, start_time):
     print("Getting open orders")
     attempts = 0
     request_params = GetOrdersRequest(
-        status="Open",
-        symbol=symbol
+        status=status,
+        symbol=symbol,
+        after=start_time
     )
     while attempts < MAX_RETRIES:
         try:
@@ -66,6 +67,39 @@ def get_open_orders(trading_client, symbol):
             attempts += 1
             if attempts == MAX_RETRIES:
                 raise Exception(f"Error during open order retrieval: all {MAX_RETRIES} attempts failed") from e
+
+
+def calculate_realized_pnl(orders):
+    pnl = 0
+    for order in orders:
+        filled_average_price = float(order['filled_avg_price'])
+        filled_qty = float(order['filled_qty'])
+        if order['side'] == "buy":
+            pnl -= (filled_average_price * filled_qty)
+        if order['side'] == "sell":
+            pnl += (filled_average_price * filled_qty)
+    return pnl
+
+
+def filter_for_closed_orders(orders):
+    closed_orders = []
+    for order in orders:
+        if order['status'] == "closed":
+            closed_orders.append(order)
+
+
+def cancel_orders(orders, trading_client):
+    print("Cancelling open orders")
+    for order in orders:
+        attempts = 0
+        while attempts < MAX_RETRIES:
+            try:
+                trading_client.cancel_order_by_id(order["id"])
+            except Exception as e:
+                print(f"Error during open order retrieval, message: {e}. Retrying...")
+                attempts += 1
+                if attempts == MAX_RETRIES:
+                    raise Exception(f"Error during open order retrieval: all {MAX_RETRIES} attempts failed") from e
 
 
 def buying_condition(mean_price, last_price):
@@ -87,19 +121,6 @@ def buy_stock(trading_client, symb):
         symbol=symb,
         qty=1,
         side=OrderSide.BUY,
-        time_in_force=TimeInForce.DAY
-    )
-    # Market order
-    market_order = trading_client.submit_order(
-        order_data=market_order_data
-    )
-
-
-def sell_stock(trading_client, symb):
-    market_order_data = MarketOrderRequest(
-        symbol=symb,
-        qty=1,
-        side=OrderSide.SELL,
         time_in_force=TimeInForce.DAY
     )
     # Market order

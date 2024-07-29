@@ -7,11 +7,15 @@ import pandas as pd
 import numpy as np
 import sys
 from io import StringIO
+from trade_job.test.data.test_variables import (
+    test_orders
+)
 from trade_job.src.trade_helper import (
     get_stock_data,
     calculate_rolling_average,
     get_open_positions,
     get_orders,
+    calculate_realized_pl,
     profit_loss_reached,
     buying_condition,
     selling_condition,
@@ -111,6 +115,10 @@ class TestTradeHelper(unittest.TestCase):
         self.assertEqual(orders, [{
                                       "orderid": 1
                                       }])
+
+    def test_calculate_realized_pl(self):
+        realized_pl = calculate_realized_pl(test_orders)
+        self.assertEqual(realized_pl, 1)
 
     def test_profit_loss_reached_profit_reached(self):
         self.assertTrue(profit_loss_reached(100, -50, 150))
