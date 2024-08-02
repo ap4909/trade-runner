@@ -7,7 +7,8 @@ from src.trade_helper import (
     calculate_realized_pnl,
     profit_loss_reached,
     get_orders,
-    filter_for_closed_orders,
+    filter_for_order_status,
+    filter_for_order_side,
     buying_condition,
     selling_condition,
     cancel_orders,
@@ -30,6 +31,8 @@ def start_trade_run(event, context):
     stop_loss = job_parameters["stopLoss"]
     max_runs = job_parameters["maxRuns"]
 
+    job_start_time = event["jobInfo"]
+
     job_status = event.get("jobStatus")
     run_count = get_current_run_count(job_status)
 
@@ -41,19 +44,25 @@ def start_trade_run(event, context):
     trading_client = TradingClient(alpaca_api_key, alpaca_secret_key)
 
     # check profit/loss limits
-    all_orders = get_orders(trading_client, symbol, 'all', context['Execution']['StartTime'])
-    closed_orders = filter_for_closed_orders(all_orders)
+    all_orders = get_orders(trading_client, symbol, 'all', job_start_time)
+    closed_orders = filter_for_order_status(all_orders, "closed")
+
     if closed_orders:
         realized_pnl = calculate_realized_pnl(closed_orders)
+    else:
+        realized_pnl = 0
 
     position = get_open_positions(trading_client, symbol)
     if position:
         unrealized_pnl = float(position.unrealized_pl)
+    else:
+        unrealized_pnl = 0
 
     pnl = realized_pnl + unrealized_pnl
-
+    print(f"Current profit/Loss is ${pnl}")
     if profit_loss_reached(take_profit, stop_loss, pnl):
         close_positions_by_percentage(trading_client, symbol, "100")
+        print("Profit/Loss limit reached, cancelling trade job")
         return {"cancelTradeJob": 1}
 
     # Evaluate buying/selling conditions
@@ -64,12 +73,18 @@ def start_trade_run(event, context):
     last_price = bars["close"].iloc[-1]
 
     if buying_condition(last_average, last_price):
-        print("Buying")
+        print("Buying condition met")
         buy_stock(trading_client, symbol)
     elif selling_condition(last_average, last_price) and position:
-        print("Selling")
-        #cancel_orders(open_orders)
-        close_positions_by_percentage(trading_client, symbol, "100")
+        print("Selling condition met")
+        open_orders = filter_for_order_status(all_orders, "open")
+
+        open_sell_orders = filter_for_order_side(open_orders, "sell")
+        open_buy_orders = filter_for_order_side(open_orders, "buy")
+        if not open_sell_orders:
+            print("Cancelling open orders")
+            cancel_orders(open_buy_orders, trading_client)
+            close_positions_by_percentage(trading_client, symbol, "100")
     else:
         print("Not buying or selling...")
 
@@ -79,6 +94,6 @@ def start_trade_run(event, context):
         print("Run limit reached, job should now be cancelled; returning trade job cancellation indicator")
         return {"cancelTradeJob": 1,
                 "runCount": run_count}
-
+    print("Run finished, returning to step function")
     return {"cancelTradeJob": 0,
             "runCount": run_count}

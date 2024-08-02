@@ -4,7 +4,7 @@ from alpaca.common.exceptions import APIError
 from alpaca.trading.requests import MarketOrderRequest, ClosePositionRequest, GetOrdersRequest
 from alpaca.trading.enums import OrderSide, TimeInForce
 import datetime
-from constants import MAX_RETRIES
+from src.constants import MAX_RETRIES
 
 
 def get_current_run_count(job_status):
@@ -50,8 +50,9 @@ def get_open_positions(trading_client, symb):
         raise
 
 
-def get_orders(trading_client, symbol, status, start_time):
-    print("Getting open orders")
+def get_orders(trading_client, symbol, status, time):
+    print("Getting orders")
+    start_time = datetime.datetime.strptime(time, "%Y-%m-%dT%H:%M:%S.%fZ")
     attempts = 0
     request_params = GetOrdersRequest(
         status=status,
@@ -72,20 +73,29 @@ def get_orders(trading_client, symbol, status, start_time):
 def calculate_realized_pnl(orders):
     pnl = 0
     for order in orders:
-        filled_average_price = float(order['filled_avg_price'])
-        filled_qty = float(order['filled_qty'])
-        if order['side'] == "buy":
+        filled_average_price = float(order.filled_avg_price)
+        filled_qty = float(order.filled_qty)
+        if order.side == "buy":
             pnl -= (filled_average_price * filled_qty)
-        if order['side'] == "sell":
+        if order.side == "sell":
             pnl += (filled_average_price * filled_qty)
     return pnl
 
 
-def filter_for_closed_orders(orders):
-    closed_orders = []
+def filter_for_order_status(orders, order_status):
+    filtered_orders = []
     for order in orders:
-        if order['status'] == "closed":
-            closed_orders.append(order)
+        if order.status == order_status:
+            filtered_orders.append(order)
+    return filtered_orders
+
+
+def filter_for_order_side(orders, order_side):
+    filtered_orders = []
+    for order in orders:
+        if order.status == order_side:
+            filtered_orders.append(order)
+    return filtered_orders
 
 
 def cancel_orders(orders, trading_client):
@@ -117,6 +127,7 @@ def selling_condition(mean_price, last_price):
 
 
 def buy_stock(trading_client, symb):
+    print(f"Making buy order for symbol {symb}")
     market_order_data = MarketOrderRequest(
         symbol=symb,
         qty=1,
