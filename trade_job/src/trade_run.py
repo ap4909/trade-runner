@@ -94,6 +94,8 @@ def start_trade_run(event, context):
     # Check run count
     run_count = increment_run_count(run_count)
     if run_count >= max_runs:
+        cancel_orders(open_buy_orders, trading_client)
+        close_positions_by_percentage(trading_client, symbol, "100")
         print("Run limit reached, job should now be cancelled; returning trade job cancellation indicator")
         return {"cancelTradeJob": 1,
                 "runCount": run_count}
