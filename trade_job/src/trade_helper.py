@@ -70,16 +70,16 @@ def get_orders(trading_client, symbol, status, time):
                 raise Exception(f"Error during open order retrieval: all {MAX_RETRIES} attempts failed") from e
 
 
-def calculate_realized_pnl(orders):
-    pnl = 0
+def calculate_realized_pl(orders):
+    pl = 0
     for order in orders:
         filled_average_price = float(order.filled_avg_price)
         filled_qty = float(order.filled_qty)
         if order.side == "buy":
-            pnl -= (filled_average_price * filled_qty)
+            pl -= (filled_average_price * filled_qty)
         if order.side == "sell":
-            pnl += (filled_average_price * filled_qty)
-    return pnl
+            pl += (filled_average_price * filled_qty)
+    return pl
 
 
 def filter_for_order_status(orders, order_status):
@@ -114,15 +114,19 @@ def cancel_orders(orders, trading_client):
 
 def buying_condition(mean_price, last_price):
     if mean_price < last_price:
+        print("Buying condition met")
         return True
     else:
+        print("Buying condition not met")
         return False
 
 
 def selling_condition(mean_price, last_price):
     if mean_price > last_price:
+        print("Selling condition met")
         return True
     else:
+        print("Selling condition not met")
         return False
 
 

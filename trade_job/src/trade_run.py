@@ -4,7 +4,7 @@ from alpaca.trading.client import TradingClient
 from src.trade_helper import (
     get_stock_data,
     get_open_positions,
-    calculate_realized_pnl,
+    calculate_realized_pl,
     profit_loss_reached,
     get_orders,
     filter_for_order_status,
@@ -48,19 +48,22 @@ def start_trade_run(event, context):
     closed_orders = filter_for_order_status(all_orders, "closed")
 
     if closed_orders:
-        realized_pnl = calculate_realized_pnl(closed_orders)
+        realized_pl = calculate_realized_pl(closed_orders)
     else:
-        realized_pnl = 0
+        realized_pl = 0
 
     position = get_open_positions(trading_client, symbol)
     if position:
-        unrealized_pnl = float(position.unrealized_pl)
+        print(f"Position exists, unrealized pl {position.unrealized_pl}")
+        unrealized_pl = float(position.unrealized_pl)
     else:
-        unrealized_pnl = 0
+        print("No positions exist")
+        unrealized_pl = 0
 
-    pnl = realized_pnl + unrealized_pnl
-    print(f"Current profit/Loss is ${pnl}")
-    if profit_loss_reached(take_profit, stop_loss, pnl):
+    theoretical_pl = realized_pl + unrealized_pl
+    print(f"Realized profit/loss is ${realized_pl}, unrealized profit/loss is ${unrealized_pl}. Theoretical "
+          f"profit/loss is ${theoretical_pl}")
+    if profit_loss_reached(take_profit, stop_loss, theoretical_pl):
         close_positions_by_percentage(trading_client, symbol, "100")
         print("Profit/Loss limit reached, cancelling trade job")
         return {"cancelTradeJob": 1}
@@ -76,13 +79,13 @@ def start_trade_run(event, context):
         print("Buying condition met")
         buy_stock(trading_client, symbol)
     elif selling_condition(last_average, last_price) and position:
-        print("Selling condition met")
+        print("Selling conditions met")
         open_orders = filter_for_order_status(all_orders, "open")
 
         open_sell_orders = filter_for_order_side(open_orders, "sell")
         open_buy_orders = filter_for_order_side(open_orders, "buy")
         if not open_sell_orders:
-            print("Cancelling open orders")
+            print("No currently existing sell orders, proceeding to make sell orders")
             cancel_orders(open_buy_orders, trading_client)
             close_positions_by_percentage(trading_client, symbol, "100")
     else:
