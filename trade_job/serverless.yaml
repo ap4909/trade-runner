@@ -48,8 +48,9 @@ stepFunctions:
             Parameters:
               jobParameters.$: >-
                 States.JsonMerge(States.StringToJson(' {"offsetTime": 16,
-                "windowLength": 5, "minimumPoints": 3, "stopLoss": null,
-                "maxRuns": 540}' ), $$.Execution.Input, false)
+                "windowLength": 5, "minimumPoints": 3, "stopLoss": null, "maxRuns":
+                540}' ), $$.Execution.Input, false)
+              jobInfo.$: $$.Execution.StartTime
           Lambda Invoke:
             Type: Task
             Resource: arn:aws:states:::lambda:invoke
@@ -83,7 +84,7 @@ stepFunctions:
           Wait:
             Type: Wait
             Seconds: 60
-            End: true
+            Next: Lambda Invoke
 
 plugins:
   - serverless-better-credentials
