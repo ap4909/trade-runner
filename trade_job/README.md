@@ -2,28 +2,27 @@
 
 ## Intro
 
-This directory holds the code and configuration files that are responsible for receiving an API request containing
-parameters related to trading a particular stock, retrieving and evaluating data regarding that stock, and then making
-automated buy or sell orders based on defined conditions.
+This repository holds the files relating to the setup and running of a system in AWS that evaluates market 
+data 
+relating to a particular stock, and makes buy or sell orders based on defined conditions.   
 
 ## Technical overview
 
 The AWS infrastructure is defined in the `serverless.yaml` file. This defines a REST API endpoint which takes a POST
-request and passes the data to a Step Function. The Step Function passes the parameters to a lambda function which
+request and passes the data to a Step Function. The Step Function passes the parameters to a Lambda function which
 encapsulates the logic of retrieving the stock data, and processing and evaluating it to decide whether an order should
 be placed. This execution of the lambda is referred to as a trade "run". Once the run is complete, the Step Function
 resumes and schedules another run to start at the beginning of the next minute, and the process begins again. This will
 continue until:
 
-- The market closes - all positions are closed
 - Either the stop-loss or take-profit limits are reached - at which point all positions are closed
-- The Job is manually cancelled by the user - closing of positions is optional
+- The Job is manually cancelled by the user
 
-The status of this process is tracked in a database entry. A flowchart of the process is shown below:
+A flowchart of the process is shown below:
 
-![Alt text here](images/workflow.svg)
+![Alt text here](images/flowchart.png)
 
-More details on the steps in the process are explained below.
+More details on the individual steps in the process are explained below.
 
 ### 1. API Gateway
 A JSON payload is sent in the form of a POST request, and contains the information regarding a stock and the 
@@ -38,12 +37,12 @@ takeProfit - Default null
 ```
 The JSON payload is passed to the Step Function.
 
-### 1. Step function
+### 2. Step function
 The Step Function first sets the default values for any parameter which has not been set. It then passes this to the 
 Lambda function. The Lambda will complete it's run, which will evaluate the data and either make a buy, sell order 
 or do nothing.
 
-### 2. Lambda Function
+### 3. Lambda Function
 The Lambda function:
 - Retrieves the Stock bar data available for the defined window from the Alpaca API
 - Evaluates the current profit and loss to establish whether limits have been reached
@@ -56,7 +55,7 @@ The Lambda function:
   - if so, return indicator that the jobs should be cancelled (`cancelTradeJob: 1`) to step function
   - else return indication that job should not be cancelled (`cancelTradeJob: 0`)
 
-### 3. Step Function
+### 4. Step Function
 - Output from Lambda function is checked to see whether job should be cancelled
   - if cancelTradeJob = 1 the job is ended
   - if cancelTradeJob = 0 the Lambda is run again

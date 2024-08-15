@@ -1,15 +1,19 @@
 # Trade Runner
 
-## Intro
-This is a collection of Python AWS lambda functions and related AWS infrastructure, configured within the Serverless framework, which run tasks associated with financial trading and market analysis.
+## Introduction
+This is a repository which contains the code for to set up a system in AWS that evaluates market 
+data relating to a particular stock, and makes buy or sell orders based on defined conditions. 
 
 ## Structure
-Each business functionality is separated into modules. Currently, the existing modules are:
-- trade_job - functionality relating to running and managing trade jobs
+Currently, there is one module:
+- trade_job - configuration and code files for an AWS API Gateway endpoint, Step Function and lambda 
+  function (Python) for the purpose of receiving an API request containing parameters, and running the step 
+  function/lambda to retrieve market data, analyse it, and make buy or sell orders. The tests for the Python code 
+  are included in this directory.
 
 ## Set-up
-This section includes information related to setting up the endpoints and infrastructure in AWS for development and/or
-operation
+This section includes general information related to setting up the endpoints and infrastructure in AWS for development 
+and operation
 
 ### Pre-requisites
 - An AWS account
