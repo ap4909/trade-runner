@@ -3,12 +3,14 @@ from unittest.mock import create_autospec, patch, MagicMock
 from alpaca.data.historical import StockHistoricalDataClient
 from alpaca.trading.client import TradingClient
 from alpaca.common.exceptions import APIError
+from alpaca.trading.models import Order
 import pandas as pd
 import numpy as np
 import sys
+import datetime
 from io import StringIO
 from trade_job.test.data.test_variables import (
-    test_orders
+    test_order_json
 )
 from trade_job.src.trade_helper import (
     get_stock_data,
@@ -31,6 +33,11 @@ class TestTradeHelper(unittest.TestCase):
         self.held_stdout = sys.stdout
         self.stdout = StringIO()
         sys.stdout = self.stdout
+
+        self.test_order_objects = []
+        for order_json in test_order_json:
+            order = Order(**order_json)
+            self.test_order_objects.append(order)
 
     def tearDown(self):
         # Restore stdout
@@ -106,18 +113,21 @@ class TestTradeHelper(unittest.TestCase):
                                                    "orderid": 1
                                                    }]
 
-        symbol = 'AAPL'
-        orders = get_orders(mock_client, symbol)
+        symbol = "AAPL"
+        status = "open"
+        time = "2024-08-02T21:02:44.952Z"
+        orders = get_orders(mock_client, symbol, status, time)
 
-        mock_get_orders_request.assert_called_once_with(symbol=symbol,
-                                                        status="Open")
+        mock_get_orders_request.assert_called_once_with(status="open",
+                                                        symbol=symbol,
+                                                        after=datetime.datetime.strptime(time, "%Y-%m-%dT%H:%M:%S.%fZ"))
         mock_client.get_orders.assert_called_once()
         self.assertEqual(orders, [{
                                       "orderid": 1
                                       }])
 
     def test_calculate_realized_pl(self):
-        realized_pl = calculate_realized_pl(test_orders)
+        realized_pl = calculate_realized_pl(self.test_order_objects)
         self.assertEqual(realized_pl, 1)
 
     def test_profit_loss_reached_profit_reached(self):
@@ -196,27 +206,6 @@ class TestTradeHelper(unittest.TestCase):
             symbol=symb,
             qty=1,
             side=mock_buy.BUY,
-            time_in_force=mock_day.DAY)
-
-        mock_client.submit_order.assert_called_once_with(order_data=1)
-
-    @patch("trade_job.src.trade_helper.TimeInForce")
-    @patch("trade_job.src.trade_helper.OrderSide")
-    @patch("trade_job.src.trade_helper.MarketOrderRequest", autospec=True)
-    def test_sell_stock(self,
-                        mock_market_order_request,
-                        mock_buy,
-                        mock_day):
-        mock_client = create_autospec(TradingClient)
-        symb = "AAPL"
-        mock_market_order_request.return_value = 1
-
-        sell_stock(mock_client, symb)
-
-        mock_market_order_request.assert_called_once_with(
-            symbol=symb,
-            qty=1,
-            side=mock_buy.SELL,
             time_in_force=mock_day.DAY)
 
         mock_client.submit_order.assert_called_once_with(order_data=1)

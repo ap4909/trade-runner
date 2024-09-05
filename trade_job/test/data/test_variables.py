@@ -22,7 +22,7 @@ rolling_average_values = pd.Series({
                                        "2024-02-10 00:08:00+00:00": 150
                                        })
 
-test_orders = [
+test_order_json = [
     {
       "id": "880938f0-6b96-4de1-9232-f3c25c0af224",
       "client_order_id": "bee9f504-6549-438b-be0f-57e114373453",

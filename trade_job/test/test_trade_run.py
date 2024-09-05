@@ -19,12 +19,10 @@ import pandas.testing as pd_testing
 @patch("trade_job.src.trade_run.buying_condition")
 @patch("trade_job.src.trade_run.selling_condition")
 @patch("trade_job.src.trade_run.buy_stock")
-@patch("trade_job.src.trade_run.sell_stock")
 @patch("trade_job.src.trade_run.increment_run_count")
 class TestTradeRun(unittest.TestCase):
     def test_start_trade_run_with_buying_condition(self,
                                                    mock_increment_run_count,
-                                                   mock_sell_stock,
                                                    mock_buy_stock,
                                                    mock_selling_condition,
                                                    mock_buying_condition,
@@ -85,7 +83,6 @@ class TestTradeRun(unittest.TestCase):
 
         mock_buying_condition.assert_called_once_with(last_average, last_price)
         mock_buy_stock.assert_called_once_with(mock_trading_client.return_value, 'AAPL')
-        mock_sell_stock.assert_not_called()
         mock_selling_condition.assert_not_called()
 
         # Test check/update run count
@@ -101,7 +98,6 @@ class TestTradeRun(unittest.TestCase):
 
     def test_start_trade_run_with_selling_price_position_held(self,
                                                               mock_increment_run_count,
-                                                              mock_sell_stock,
                                                               mock_buy_stock,
                                                               mock_selling_condition,
                                                               mock_buying_condition,
@@ -166,7 +162,6 @@ class TestTradeRun(unittest.TestCase):
 
         mock_buying_condition.assert_called_once_with(last_average, last_price)
         mock_buy_stock.assert_not_called()
-        mock_sell_stock.assert_called_once_with(mock_trading_client.return_value, 'AAPL')
         mock_selling_condition.assert_called_once_with(last_average, last_price)
 
         # Test check/update run count
@@ -181,7 +176,6 @@ class TestTradeRun(unittest.TestCase):
 
     def test_start_trade_run_with_selling_price_no_position(self,
                                                             mock_increment_run_count,
-                                                            mock_sell_stock,
                                                             mock_buy_stock,
                                                             mock_selling_condition,
                                                             mock_buying_condition,
@@ -247,7 +241,6 @@ class TestTradeRun(unittest.TestCase):
 
         mock_buying_condition.assert_called_once_with(last_average, last_price)
         mock_buy_stock.assert_not_called()
-        mock_sell_stock.assert_not_called()
         mock_selling_condition.assert_called_once_with(last_average, last_price)
 
         # Test check/update run count
@@ -261,7 +254,6 @@ class TestTradeRun(unittest.TestCase):
 
     def test_start_trade_run_with_selling_price_no_position(self,
                                                             mock_increment_run_count,
-                                                            mock_sell_stock,
                                                             mock_buy_stock,
                                                             mock_selling_condition,
                                                             mock_buying_condition,
@@ -327,7 +319,6 @@ class TestTradeRun(unittest.TestCase):
 
         mock_buying_condition.assert_called_once_with(last_average, last_price)
         mock_buy_stock.assert_not_called()
-        mock_sell_stock.assert_not_called()
         mock_selling_condition.assert_called_once_with(last_average, last_price)
 
         # Test check/update run count
@@ -341,7 +332,6 @@ class TestTradeRun(unittest.TestCase):
 
     def test_start_trade_run_max_run_count_reached(self,
                                                    mock_increment_run_count,
-                                                   mock_sell_stock,
                                                    mock_buy_stock,
                                                    mock_selling_condition,
                                                    mock_buying_condition,
@@ -407,7 +397,6 @@ class TestTradeRun(unittest.TestCase):
 
         mock_buying_condition.assert_called_once_with(last_average, last_price)
         mock_buy_stock.assert_not_called()
-        mock_sell_stock.assert_not_called()
         mock_selling_condition.assert_called_once_with(last_average, last_price)
 
         # Test check/update run count
