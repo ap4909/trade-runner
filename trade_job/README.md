@@ -44,19 +44,23 @@ or do nothing.
 
 ### 3. Lambda Function
 The Lambda function:
-- Retrieves the Stock bar data available for the defined window from the Alpaca API
-- Evaluates the current profit and loss to establish whether limits have been reached
-  - if limits have been reached, then sell all open positions and cancel the job
-- Evaluates the moving average over the time window and compares the last available price to it
-  - if the last price is above the average, a buy market order is made 
-  - if the last price is below the average, and a position is currently held, a sell market order is made
-  - if none of these conditions are fulfilled, then no action will be taken
-- Checks whether the the maximum number of runs has been reached
-  - if so, return indicator that the jobs should be cancelled (`cancelTradeJob: 1`) to step function
-  - else return indication that job should not be cancelled (`cancelTradeJob: 0`)
+1. Retrieves **all** orders for symbol from Alpaca API since job was started
+2. Retrieves all open positions
+3. Calculates current profit/loss
+4. Evaluates whether profit/loss limits reached
+   1. if limits have been reached, then sell all open positions and cancel the job
+5. Calculates the moving average over the time window and compares the last available price to it:
+   1. if the last price is above the average, a buy market order is made 
+   2. if the last price is below the average, and a position is currently held, a sell market order is made 
+   3. if none of these conditions are fulfilled, then no action will be taken, and the run will continue
+6. Check is then done on whether the maximum number of runs has been reached 
+   1. if the maxmimum number has been reached:
+      1. cancel open orders, close all positions
+      2. return indicator that the job should be cancelled (`cancelTradeJob: 1`) to step function
+   2. if maxmimum number not reached, return indication that job should not be cancelled (`cancelTradeJob: 0`)
 
 ### 4. Step Function
-- Output from Lambda function is checked to see whether job should be cancelled
+Output from Lambda function is checked to see whether job should be cancelled
   - if cancelTradeJob = 1 the job is ended
   - if cancelTradeJob = 0 the Lambda is run again
 
@@ -77,3 +81,11 @@ An example payload with all parameters is given below:
        }
 ```
 
+To trigger the workflow, a POST request can be made to the API Gateway endpoint e.g. using cURL:
+```
+curl -v --header "Content-Type: application/json" \
+  --request POST \
+  --data '{"symbol": "AAPL", "offsetTime": 16, "windowLength": 5, "minimumPoints": 3, "takeProfit": 1000, 
+  "stopLoss": -2000}' -H  "x-api-key: <api_key>" \
+<API_gateway_url>/dev/startTradeJob
+```
