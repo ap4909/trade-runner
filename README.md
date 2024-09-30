@@ -1,7 +1,7 @@
 # Trade Runner
 
 ## Introduction
-This is a repository which contains the code for to set up a system in AWS that evaluates market 
+This is a repository which contains the code for a system that evaluates market 
 data relating to a particular stock, and makes buy or sell orders based on defined conditions. 
 
 ## Structure
