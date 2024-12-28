@@ -32,16 +32,11 @@ def start_trade_run(event, context):
     max_runs = job_parameters["maxRuns"]
 
     job_start_time = event["jobInfo"]
-
     job_status = event.get("jobStatus")
-    run_count = get_current_run_count(job_status)
 
     # Setup Alpaca API clients
-    alpaca_api_key = secret['alpaca_api_key']
-    alpaca_secret_key = secret['alpaca_secret_key']
-
-    stock_client = StockHistoricalDataClient(alpaca_api_key, alpaca_secret_key)
-    trading_client = TradingClient(alpaca_api_key, alpaca_secret_key)
+    stock_client = StockHistoricalDataClient(secret['alpaca_api_key'], secret['alpaca_secret_key'])
+    trading_client = TradingClient(secret['alpaca_api_key'], secret['alpaca_secret_key'])
 
     # check profit/loss limits
     all_orders = get_orders(trading_client, symbol, 'all', job_start_time)
@@ -92,6 +87,7 @@ def start_trade_run(event, context):
         print("Not buying or selling...")
 
     # Check run count
+    run_count = get_current_run_count(job_status)
     run_count = increment_run_count(run_count)
     if run_count >= max_runs:
         cancel_orders(open_buy_orders, trading_client)
