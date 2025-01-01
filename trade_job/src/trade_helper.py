@@ -70,6 +70,22 @@ def get_orders(trading_client, symbol, status, time):
                 raise Exception(f"Error during open order retrieval: all {MAX_RETRIES} attempts failed") from e
 
 
+def filter_for_order_status(orders, order_status):
+    filtered_orders = []
+    for order in orders:
+        if order.status == order_status:
+            filtered_orders.append(order)
+    return filtered_orders
+
+
+def get_realized_pl(closed_orders):
+    if closed_orders:
+        realized_pl = calculate_realized_pl(closed_orders)
+    else:
+        realized_pl = 0
+    return realized_pl
+
+
 def calculate_realized_pl(orders):
     pl = 0
     for order in orders:
@@ -80,14 +96,6 @@ def calculate_realized_pl(orders):
         if order.side == "sell":
             pl += (filled_average_price * filled_qty)
     return pl
-
-
-def filter_for_order_status(orders, order_status):
-    filtered_orders = []
-    for order in orders:
-        if order.status == order_status:
-            filtered_orders.append(order)
-    return filtered_orders
 
 
 def filter_for_order_side(orders, order_side):

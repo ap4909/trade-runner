@@ -4,7 +4,7 @@ from alpaca.trading.client import TradingClient
 from src.trade_helper import (
     get_stock_data,
     get_open_positions,
-    calculate_realized_pl,
+    get_realized_pl,
     profit_loss_reached,
     get_orders,
     filter_for_order_status,
@@ -42,10 +42,7 @@ def start_trade_run(event, context):
     all_orders = get_orders(trading_client, symbol, 'all', job_start_time)
     closed_orders = filter_for_order_status(all_orders, "closed")
 
-    if closed_orders:
-        realized_pl = calculate_realized_pl(closed_orders)
-    else:
-        realized_pl = 0
+    realized_pl = get_realized_pl(closed_orders)
 
     position = get_open_positions(trading_client, symbol)
     if position:

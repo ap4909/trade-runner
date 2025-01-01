@@ -17,6 +17,7 @@ from trade_job.src.trade_helper import (
     calculate_rolling_average,
     get_open_positions,
     get_orders,
+    get_realized_pl,
     calculate_realized_pl,
     profit_loss_reached,
     buying_condition,
@@ -125,6 +126,19 @@ class TestTradeHelper(unittest.TestCase):
         self.assertEqual(orders, [{
                                       "orderid": 1
                                       }])
+
+    @patch("trade_job.src.trade_helper.calculate_realized_pl")
+    def test_get_realized_pl_with_existing_closed_orders(self,
+                                                         mock_calculate_realized_pl):
+        mock_calculate_realized_pl.return_value = 1
+        realized_pl = get_realized_pl(self.test_order_objects)
+
+        self.assertEqual(1, realized_pl)
+
+    def test_get_realized_pl_with_existing_closed_orders(self):
+        realized_pl = get_realized_pl([])
+
+        self.assertEqual(0, realized_pl)
 
     def test_calculate_realized_pl(self):
         realized_pl = calculate_realized_pl(self.test_order_objects)
