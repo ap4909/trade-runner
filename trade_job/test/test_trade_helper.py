@@ -19,6 +19,7 @@ from trade_job.src.trade_helper import (
     get_orders,
     get_realized_pl,
     calculate_realized_pl,
+    get_unrealized_pl,
     profit_loss_reached,
     buying_condition,
     selling_condition,
@@ -143,6 +144,40 @@ class TestTradeHelper(unittest.TestCase):
     def test_calculate_realized_pl(self):
         realized_pl = calculate_realized_pl(self.test_order_objects)
         self.assertEqual(realized_pl, 1)
+
+    @patch("trade_job.src.trade_helper.get_open_positions")
+    def test_get_unrealized_pl_position_exists(self, mock_get_open_positions):
+        # Mock the return value for an open position
+        mock_position = MagicMock()
+        mock_position.unrealized_pl = "150.50"
+        mock_get_open_positions.return_value = mock_position
+
+        # Mock trading_client and symbol
+        trading_client = MagicMock()
+        symbol = "AAPL"
+
+        # Call the function
+        result = get_unrealized_pl(trading_client, symbol)
+
+        # Assert that the value is correctly returned as float
+        self.assertEqual(result, 150.50)
+        mock_get_open_positions.assert_called_once_with(trading_client, symbol)
+
+    @patch("trade_job.src.trade_helper.get_open_positions")  # Patch the helper function
+    def test_no_position_exists(self, mock_get_open_positions):
+        # Mock the return value as None (no open positions)
+        mock_get_open_positions.return_value = None
+
+        # Mock trading_client and symbol
+        trading_client = MagicMock()
+        symbol = "AAPL"
+
+        # Call the function
+        result = get_unrealized_pl(trading_client, symbol)
+
+        # Assert that the result is 0
+        self.assertEqual(result, 0)
+        mock_get_open_positions.assert_called_once_with(trading_client, symbol)
 
     def test_profit_loss_reached_profit_reached(self):
         self.assertTrue(profit_loss_reached(100, -50, 150))

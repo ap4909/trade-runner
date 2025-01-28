@@ -98,6 +98,22 @@ def calculate_realized_pl(orders):
     return pl
 
 
+def get_unrealized_pl(trading_client, symbol):
+    position = get_open_positions(trading_client, symbol)
+    if position:
+        print(f"Position exists, unrealized pl {position.unrealized_pl}")
+        return float(position.unrealized_pl)
+    else:
+        print("No positions exist")
+        return 0
+
+
+def calculate_theoretical_pl(realized_pl, unrealized_pl):
+    theoretical_pl = realized_pl + unrealized_pl
+    print(f"Realized profit/loss is ${realized_pl}, unrealized profit/loss is ${unrealized_pl}. Theoretical "
+          f"profit/loss is ${theoretical_pl}")
+
+
 def filter_for_order_side(orders, order_side):
     filtered_orders = []
     for order in orders:

@@ -3,8 +3,9 @@ from src.secrets_helper import get_secret
 from alpaca.trading.client import TradingClient
 from src.trade_helper import (
     get_stock_data,
-    get_open_positions,
     get_realized_pl,
+    get_unrealized_pl,
+    calculate_theoretical_pl,
     profit_loss_reached,
     get_orders,
     filter_for_order_status,
@@ -38,23 +39,16 @@ def start_trade_run(event, context):
     stock_client = StockHistoricalDataClient(secret['alpaca_api_key'], secret['alpaca_secret_key'])
     trading_client = TradingClient(secret['alpaca_api_key'], secret['alpaca_secret_key'])
 
-    # check profit/loss limits
+    # calculate profit/loss
     all_orders = get_orders(trading_client, symbol, 'all', job_start_time)
     closed_orders = filter_for_order_status(all_orders, "closed")
 
     realized_pl = get_realized_pl(closed_orders)
 
-    position = get_open_positions(trading_client, symbol)
-    if position:
-        print(f"Position exists, unrealized pl {position.unrealized_pl}")
-        unrealized_pl = float(position.unrealized_pl)
-    else:
-        print("No positions exist")
-        unrealized_pl = 0
+    unrealized_pl = get_unrealized_pl(trading_client, symbol)
 
-    theoretical_pl = realized_pl + unrealized_pl
-    print(f"Realized profit/loss is ${realized_pl}, unrealized profit/loss is ${unrealized_pl}. Theoretical "
-          f"profit/loss is ${theoretical_pl}")
+    theoretical_pl = calculate_theoretical_pl(realized_pl, unrealized_pl)
+
     if profit_loss_reached(take_profit, stop_loss, theoretical_pl):
         close_positions_by_percentage(trading_client, symbol, "100")
         print("Profit/Loss limit reached, cancelling trade job")
